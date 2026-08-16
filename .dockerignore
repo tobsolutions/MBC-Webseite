@@ -1,0 +1,32 @@
+# Abhaengigkeiten & Build-Artefakte (werden im Container neu erzeugt)
+node_modules
+.next
+.vercel
+.git
+.gitignore
+
+# Umgebungsvariablen NIEMALS ins Image kopieren
+.env
+.env.*
+!.env.example
+
+# Lokale/IDE-Dateien
+.DS_Store
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# v0 Sandbox-interne Dateien
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.snowflake/
+.v0-trash/
+v0_plans/
+v0_memories/
+user_read_only_context/
+
+# Docker-Dateien selbst
+Dockerfile
+.dockerignore
+docker-compose.yml
