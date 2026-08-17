@@ -84,7 +84,8 @@ export async function getGalleryImages() {
 // Internal reads (role-scoped). There is no RLS — always filter by scope.
 // ---------------------------------------------------------------------------
 export async function getInternalNavPages(role: Role) {
-  const scopes = visibleScopesFor(role)
+  // Oeffentliche Seiten gehoeren nicht in den Mitgliederbereich.
+  const scopes = visibleScopesFor(role).filter((s) => s !== "public")
   return db
     .select({ slug: pages.slug, title: pages.title })
     .from(pages)
@@ -93,7 +94,8 @@ export async function getInternalNavPages(role: Role) {
 }
 
 export async function getInternalPage(slug: string, role: Role) {
-  const scopes = visibleScopesFor(role)
+  // Oeffentliche Seiten gehoeren nicht in den Mitgliederbereich.
+  const scopes = visibleScopesFor(role).filter((s) => s !== "public")
   const rows = await db
     .select()
     .from(pages)
