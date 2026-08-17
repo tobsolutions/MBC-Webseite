@@ -30,7 +30,7 @@ export function SiteFooter() {
           <ul className="mt-4 space-y-3 text-sm text-primary-foreground/80">
             <li className="flex items-start gap-2">
               <MapPin className="mt-0.5 size-4 shrink-0 text-accent" />
-              <span>Vereinsheim, 89287 Bellenberg</span>
+              <span>Bahnhof Bellenberg, Bahnhofstraße 11, 89287 Bellenberg</span>
             </li>
             <li className="flex items-start gap-2">
               <Mail className="mt-0.5 size-4 shrink-0 text-accent" />
