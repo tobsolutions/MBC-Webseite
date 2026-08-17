@@ -1,4 +1,5 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Mail, MapPin } from "lucide-react"
 
 export function SiteFooter() {
@@ -8,9 +9,13 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-3">
         <div>
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-accent font-mono text-sm font-bold text-accent-foreground">
-              MBC
-            </span>
+            <Image
+              src="/images/logo-mbc-weiss.png"
+              alt="Modellbauclub Bellenberg e.V. Logo"
+              width={2048}
+              height={1081}
+              className="h-11 w-auto"
+            />
             <span className="font-serif text-sm font-bold uppercase tracking-wide">
               Modellbauclub Bellenberg e.V.
             </span>

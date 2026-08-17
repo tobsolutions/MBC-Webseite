@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useState } from "react"
 import { Menu, LogIn, UserRound } from "lucide-react"
@@ -24,9 +25,14 @@ export function SiteHeader({
     <header className="sticky top-0 z-50 border-b border-brand bg-brand text-brand-foreground">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-brand-foreground font-mono text-sm font-bold tracking-tight text-brand">
-            MBC
-          </span>
+          <Image
+            src="/images/logo-mbc-weiss.png"
+            alt="Modellbauclub Bellenberg e.V. Logo"
+            width={2048}
+            height={1081}
+            priority
+            className="h-11 w-auto"
+          />
           <span className="hidden flex-col leading-none sm:flex">
             <span className="font-serif text-sm font-bold uppercase tracking-wide text-brand-foreground">
               Modellbauclub
