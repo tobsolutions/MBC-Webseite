@@ -1,6 +1,14 @@
 import type { ReactNode } from "react"
 import Link from "next/link"
-import { LayoutDashboard, FileText, CalendarDays, FolderOpen, ArrowLeft, ShieldCheck } from "lucide-react"
+import {
+  LayoutDashboard,
+  FileText,
+  CalendarDays,
+  CalendarClock,
+  FolderOpen,
+  ArrowLeft,
+  ShieldCheck,
+} from "lucide-react"
 import { requireUser, ROLE_LABELS } from "@/lib/session"
 import { getInternalNavPages } from "@/lib/queries"
 import { DashboardNav, type DashboardNavItem } from "@/components/dashboard-nav"
@@ -13,6 +21,7 @@ export default async function InternLayout({ children }: { children: ReactNode }
   const items: DashboardNavItem[] = [
     { href: "/intern", label: "Übersicht", icon: <LayoutDashboard className="size-4" /> },
     { href: "/intern/termine", label: "Termine", icon: <CalendarDays className="size-4" /> },
+    { href: "/intern/schichtplan", label: "Schichtplan Ausstellung", icon: <CalendarClock className="size-4" /> },
     { href: "/intern/dokumente", label: "Dokumente", icon: <FolderOpen className="size-4" /> },
     ...pages.map((p) => ({
       href: `/intern/seite/${p.slug}`,

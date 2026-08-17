@@ -1,17 +1,22 @@
 import { getSetting } from "@/lib/queries"
 import { fetchOutlookEvents } from "@/lib/outlook-calendar"
-import { OUTLOOK_CALENDAR_KEY } from "@/lib/settings-keys"
+import { OUTLOOK_CALENDAR_KEY, OUTLOOK_CALENDAR_START_KEY } from "@/lib/settings-keys"
 import { OutlookCalendarForm } from "@/components/admin/outlook-calendar-form"
 import { Card } from "@/components/ui/card"
 
 export const metadata = { title: "Einstellungen – Verwaltung | MBC Bellenberg" }
 
 export default async function AdminSettings() {
-  const url = (await getSetting(OUTLOOK_CALENDAR_KEY)) ?? ""
+  const [url, startDate] = await Promise.all([
+    getSetting(OUTLOOK_CALENDAR_KEY),
+    getSetting(OUTLOOK_CALENDAR_START_KEY),
+  ])
+  const calendarUrl = url ?? ""
+  const calendarStart = startDate ?? ""
 
   let status: { ok: true; count: number } | { ok: false; error: string } | null = null
-  if (url) {
-    const res = await fetchOutlookEvents(url)
+  if (calendarUrl) {
+    const res = await fetchOutlookEvents(calendarUrl, calendarStart)
     status = res.ok ? { ok: true, count: res.events.length } : { ok: false, error: res.error }
   }
 
@@ -32,7 +37,7 @@ export default async function AdminSettings() {
           werden automatisch abgerufen und rund alle 15 Minuten aktualisiert.
         </p>
         <div className="mt-6">
-          <OutlookCalendarForm currentUrl={url} status={status} />
+          <OutlookCalendarForm currentUrl={calendarUrl} currentStartDate={calendarStart} status={status} />
         </div>
       </Card>
 
