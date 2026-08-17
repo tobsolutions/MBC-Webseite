@@ -18,16 +18,31 @@ export default async function InternLayout({ children }: { children: ReactNode }
   const user = await requireUser("/intern")
   const pages = await getInternalNavPages(user.role)
 
-  const items: DashboardNavItem[] = [
-    { href: "/intern", label: "Übersicht", icon: <LayoutDashboard className="size-4" /> },
-    { href: "/intern/termine", label: "Termine", icon: <CalendarDays className="size-4" /> },
-    { href: "/intern/schichtplan", label: "Schichtplan Ausstellung", icon: <CalendarClock className="size-4" /> },
-    { href: "/intern/dokumente", label: "Dokumente", icon: <FolderOpen className="size-4" /> },
-    ...pages.map((p) => ({
+  const schichtplanItem: DashboardNavItem = {
+    href: "/intern/schichtplan",
+    label: "Schichtplan Ausstellung",
+    icon: <CalendarClock className="size-4" />,
+  }
+
+  // CMS-Seiten in Menuepunkte umwandeln und den Schichtplan-Link direkt oberhalb
+  // der Seite "Infos fuer Ausstellungshelfer" (Slug helfer-infos) einfuegen.
+  const pageItems: DashboardNavItem[] = []
+  for (const p of pages) {
+    if (p.slug === "helfer-infos") pageItems.push(schichtplanItem)
+    pageItems.push({
       href: `/intern/seite/${p.slug}`,
       label: p.title,
       icon: <FileText className="size-4" />,
-    })),
+    })
+  }
+  // Falls die Helfer-Seite nicht in der Navigation ist, den Schichtplan ans Ende anhaengen.
+  if (!pages.some((p) => p.slug === "helfer-infos")) pageItems.push(schichtplanItem)
+
+  const items: DashboardNavItem[] = [
+    { href: "/intern", label: "Übersicht", icon: <LayoutDashboard className="size-4" /> },
+    { href: "/intern/termine", label: "Termine", icon: <CalendarDays className="size-4" /> },
+    { href: "/intern/dokumente", label: "Dokumente", icon: <FolderOpen className="size-4" /> },
+    ...pageItems,
   ]
 
   return (
