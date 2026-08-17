@@ -1,5 +1,5 @@
 import "server-only"
-import ical from "node-ical"
+import ical, { type VEvent, type CalendarResponse } from "node-ical"
 
 // Ein einzelner (ggf. aus einer Serie expandierter) Outlook-Termin.
 export type OutlookEvent = {
@@ -28,7 +28,7 @@ function cleanText(input: unknown): string {
     .trim()
 }
 
-function isAllDay(ev: ical.VEvent): boolean {
+function isAllDay(ev: VEvent): boolean {
   const start = ev.start as Date & { dateOnly?: boolean }
   return Boolean(start?.dateOnly) || (ev as unknown as { datetype?: string }).datetype === "date"
 }
@@ -62,7 +62,7 @@ export async function fetchOutlookEvents(url: string): Promise<OutlookResult> {
     return { ok: false, error: "Die URL liefert keinen gültigen ICS-Kalender." }
   }
 
-  let data: Record<string, ical.CalendarComponent>
+  let data: CalendarResponse
   try {
     data = ical.sync.parseICS(text)
   } catch {
@@ -75,7 +75,7 @@ export async function fetchOutlookEvents(url: string): Promise<OutlookResult> {
   const rangeEnd = new Date(now.getFullYear(), now.getMonth() + 18, 0)
 
   const out: OutlookEvent[] = []
-  const push = (ev: ical.VEvent, start: Date, end: Date | null) => {
+  const push = (ev: VEvent, start: Date, end: Date | null) => {
     out.push({
       id: `${ev.uid ?? "evt"}-${start.getTime()}`,
       title: cleanText(ev.summary) || "Termin",
@@ -91,7 +91,7 @@ export async function fetchOutlookEvents(url: string): Promise<OutlookResult> {
   for (const key of Object.keys(data)) {
     const comp = data[key]
     if (!comp || comp.type !== "VEVENT") continue
-    const ev = comp as ical.VEvent
+    const ev = comp as VEvent
     const start = ev.start as Date | undefined
     if (!start) continue
     const end = (ev.end as Date | undefined) ?? null
@@ -113,7 +113,7 @@ export async function fetchOutlookEvents(url: string): Promise<OutlookResult> {
       if (exdate && exdate[lookupKey]) continue
 
       // Einzeln geaenderter Termin der Serie (Override)
-      const recurrences = (ev as unknown as { recurrences?: Record<string, ical.VEvent> }).recurrences
+      const recurrences = (ev as unknown as { recurrences?: Record<string, VEvent> }).recurrences
       const override = recurrences?.[lookupKey]
       if (override && override.start) {
         const ovEnd = override.end ? (override.end as Date) : null
