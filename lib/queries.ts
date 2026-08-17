@@ -6,12 +6,33 @@ import type { Role } from "@/lib/roles"
 import { visibleScopesForRole as visibleScopesFor } from "@/lib/roles"
 
 // ---- Public pages ----------------------------------------------------------
-export async function getPublicNavPages() {
-  return db
-    .select({ slug: pages.slug, title: pages.title })
+export type NavPage = {
+  slug: string
+  title: string
+  children: { slug: string; title: string }[]
+}
+
+// Navigation als Baum: Top-Level-Seiten mit ihren untergeordneten Seiten (fuer Dropdowns).
+export async function getPublicNavPages(): Promise<NavPage[]> {
+  const rows = await db
+    .select({
+      id: pages.id,
+      slug: pages.slug,
+      title: pages.title,
+      parentId: pages.parentId,
+    })
     .from(pages)
     .where(and(eq(pages.visibility, "public"), eq(pages.published, true), eq(pages.showInNav, true)))
     .orderBy(asc(pages.sortOrder), asc(pages.title))
+
+  const tops = rows.filter((r) => r.parentId == null)
+  return tops.map((top) => ({
+    slug: top.slug,
+    title: top.title,
+    children: rows
+      .filter((r) => r.parentId === top.id)
+      .map((c) => ({ slug: c.slug, title: c.title })),
+  }))
 }
 
 export async function getPublicPage(slug: string) {
@@ -21,6 +42,20 @@ export async function getPublicPage(slug: string) {
     .where(and(eq(pages.slug, slug), eq(pages.visibility, "public"), eq(pages.published, true)))
     .limit(1)
   return rows[0] ?? null
+}
+
+// Untergeordnete Seiten einer Elternseite inkl. Kurztext und Titelbild (fuer die Auflistung).
+export async function getChildPages(parentId: number) {
+  return db
+    .select({
+      slug: pages.slug,
+      title: pages.title,
+      excerpt: pages.excerpt,
+      coverImage: pages.coverImage,
+    })
+    .from(pages)
+    .where(and(eq(pages.parentId, parentId), eq(pages.visibility, "public"), eq(pages.published, true)))
+    .orderBy(asc(pages.sortOrder), asc(pages.title))
 }
 
 // ---- News ------------------------------------------------------------------

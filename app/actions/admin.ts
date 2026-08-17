@@ -49,11 +49,18 @@ export async function savePage(formData: FormData): Promise<ActionResult> {
   let slug = slugify(str(formData.get("slug")) || title)
   if (!slug) slug = `seite-${Date.now()}`
 
+  // Uebergeordnete Seite; niemals sich selbst als Elternteil zulassen.
+  const parentIdRaw = str(formData.get("parentId"))
+  const parsedParent = parentIdRaw ? Number.parseInt(parentIdRaw, 10) : null
+  const parentId = parsedParent && parsedParent !== Number(id) ? parsedParent : null
+
   const values = {
     slug,
     title,
     content: str(formData.get("content")),
+    excerpt: str(formData.get("excerpt")),
     coverImage: str(formData.get("coverImage")) || null,
+    parentId,
     visibility: normVisibility(formData.get("visibility")),
     sortOrder: Number.parseInt(str(formData.get("sortOrder")) || "0", 10) || 0,
     showInNav: formData.get("showInNav") === "on",
@@ -61,11 +68,17 @@ export async function savePage(formData: FormData): Promise<ActionResult> {
     updatedAt: new Date(),
   }
 
+  let parentSlug: string | null = null
   try {
     if (id) {
       await db.update(pages).set(values).where(eq(pages.id, Number(id)))
     } else {
       await db.insert(pages).values(values)
+    }
+    // Slug der Elternseite fuer gezielte Revalidierung ermitteln.
+    if (parentId) {
+      const parentRows = await db.select({ slug: pages.slug }).from(pages).where(eq(pages.id, parentId)).limit(1)
+      parentSlug = parentRows[0]?.slug ?? null
     }
   } catch {
     return { ok: false, error: "Der Slug wird bereits verwendet." }
@@ -75,6 +88,7 @@ export async function savePage(formData: FormData): Promise<ActionResult> {
   revalidatePath("/")
   revalidatePath(`/seite/${slug}`)
   revalidatePath(`/intern/seite/${slug}`)
+  if (parentSlug) revalidatePath(`/seite/${parentSlug}`)
   return { ok: true }
 }
 

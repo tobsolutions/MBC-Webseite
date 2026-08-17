@@ -9,7 +9,11 @@ export default async function PublicLayout({ children }: { children: ReactNode }
 
   const navItems: NavItem[] = [
     { href: "/", label: "Startseite" },
-    ...cmsPages.map((p) => ({ href: `/seite/${p.slug}`, label: p.title })),
+    ...cmsPages.map((p) => ({
+      href: `/seite/${p.slug}`,
+      label: p.title,
+      children: p.children.map((c) => ({ href: `/seite/${c.slug}`, label: c.title })),
+    })),
     { href: "/galerie", label: "Galerie" },
     { href: "/termine", label: "Termine" },
     { href: "/kontakt", label: "Kontakt" },

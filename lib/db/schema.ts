@@ -71,14 +71,16 @@ export const pages = pgTable("pages", {
   slug: text("slug").notNull().unique(),
   title: text("title").notNull(),
   content: text("content").notNull().default(""),
+  excerpt: text("excerpt").notNull().default(""),
   coverImage: text("coverImage"),
+  parentId: integer("parentId"),
   visibility: text("visibility").notNull().default("public"),
   sortOrder: integer("sortOrder").notNull().default(0),
   showInNav: boolean("showInNav").notNull().default(true),
   published: boolean("published").notNull().default(true),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
-})
+  })
 
 export const news = pgTable("news", {
   id: serial("id").primaryKey(),
