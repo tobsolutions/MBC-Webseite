@@ -85,7 +85,7 @@ export default async function HomePage() {
               <h2 className="mt-2 font-serif text-3xl font-bold">Aktuelles aus dem Verein</h2>
             </div>
             <Button asChild variant="ghost" className="hidden sm:inline-flex">
-              <Link href="/aktuelles">
+              <Link href="/seite/verein#aktuelles">
                 Alle Beiträge <ArrowRight className="size-4" />
               </Link>
             </Button>
