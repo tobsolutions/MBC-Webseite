@@ -27,6 +27,7 @@ export default async function InternEventsPage() {
     endAt: e.endAt ? e.endAt.toISOString() : null,
     allDay: e.allDay,
     visibility: e.visibility,
+    clubInternal: e.clubInternal,
   }))
 
   // Outlook-Kalender nur laden, wenn eine URL hinterlegt ist.

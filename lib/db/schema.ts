@@ -103,6 +103,7 @@ export const events = pgTable("events", {
   endAt: timestamp("endAt"),
   allDay: boolean("allDay").notNull().default(false),
   visibility: text("visibility").notNull().default("public"),
+  clubInternal: boolean("clubInternal").notNull().default(false),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 })
