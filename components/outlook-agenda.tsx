@@ -103,15 +103,16 @@ export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
         )}
       </div>
 
-      {days.length === 0 ? (
+      {days.length === 0 && (
         <div className="flex items-center gap-2 rounded-sm border border-border bg-card p-6 text-sm text-muted-foreground">
           <CalendarClock className="size-4 shrink-0" />
           {hasQuery
             ? `Keine Termine gefunden für „${query.trim()}".`
             : "Aktuell sind keine Termine vorhanden."}
         </div>
-      ) : (
-        days.map((day) => (
+      )}
+
+      {days.map((day) => (
         <section key={dayKey(day.date)} className="rounded-sm border border-border bg-card">
           <header className="border-b border-border bg-secondary/40 px-4 py-3">
             <h3 className="font-serif text-base font-bold">
@@ -153,8 +154,7 @@ export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
             ))}
           </div>
         </section>
-        ))
-      )}
+      ))}
     </div>
   )
 }
