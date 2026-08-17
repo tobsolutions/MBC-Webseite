@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo } from "react"
-import { MapPin, CalendarClock } from "lucide-react"
+import { useMemo, useState } from "react"
+import { MapPin, CalendarClock, Search, X } from "lucide-react"
 import type { CalendarEvent } from "@/components/event-calendar"
 
 type ParsedEvent = CalendarEvent & { start: Date; end: Date | null }
@@ -33,10 +33,19 @@ function isSchichtleitung(e: ParsedEvent) {
 }
 
 export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
+  const [query, setQuery] = useState("")
+
   // Nach Tag und dann nach identischer Uhrzeit gruppieren.
   const days = useMemo(() => {
+    const q = query.trim().toLowerCase()
     const parsed: ParsedEvent[] = events
       .map((e) => ({ ...e, start: new Date(e.startAt), end: e.endAt ? new Date(e.endAt) : null }))
+      // Textfilter: nur Termine, die den Suchtext in Titel, Beschreibung oder Ort enthalten.
+      .filter((e) => {
+        if (!q) return true
+        const haystack = `${e.title} ${e.description ?? ""} ${e.location ?? ""}`.toLowerCase()
+        return haystack.includes(q)
+      })
       .sort((a, b) => a.start.getTime() - b.start.getTime())
 
     const byDay = new Map<string, ParsedEvent[]>()
@@ -66,20 +75,43 @@ export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
         .sort((a, b) => a.sort - b.sort)
       return { date: dayEvents[0].start, groups }
     })
-  }, [events])
+  }, [events, query])
 
-  if (days.length === 0) {
-    return (
-      <div className="flex items-center gap-2 rounded-sm border border-border bg-card p-6 text-sm text-muted-foreground">
-        <CalendarClock className="size-4 shrink-0" />
-        Aktuell sind keine Termine vorhanden.
-      </div>
-    )
-  }
+  const hasQuery = query.trim().length > 0
 
   return (
     <div className="space-y-6">
-      {days.map((day) => (
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Termine durchsuchen (z. B. Name, Schicht, Ort) …"
+          aria-label="Termine nach Text filtern"
+          className="h-10 w-full rounded-sm border border-border bg-card pl-9 pr-9 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        />
+        {hasQuery && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label="Filter zurücksetzen"
+            className="absolute right-2 top-1/2 flex size-6 -translate-y-1/2 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
+
+      {days.length === 0 ? (
+        <div className="flex items-center gap-2 rounded-sm border border-border bg-card p-6 text-sm text-muted-foreground">
+          <CalendarClock className="size-4 shrink-0" />
+          {hasQuery
+            ? `Keine Termine gefunden für „${query.trim()}".`
+            : "Aktuell sind keine Termine vorhanden."}
+        </div>
+      ) : (
+        days.map((day) => (
         <section key={dayKey(day.date)} className="rounded-sm border border-border bg-card">
           <header className="border-b border-border bg-secondary/40 px-4 py-3">
             <h3 className="font-serif text-base font-bold">
@@ -121,7 +153,8 @@ export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
             ))}
           </div>
         </section>
-      ))}
+        ))
+      )}
     </div>
   )
 }
