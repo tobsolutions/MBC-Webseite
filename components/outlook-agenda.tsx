@@ -26,6 +26,12 @@ function timeSortKey(e: ParsedEvent) {
   return e.start.getHours() * 60 + e.start.getMinutes()
 }
 
+// Termine mit "Schichtleitung" (in Titel oder Beschreibung) sollen zuerst erscheinen.
+function isSchichtleitung(e: ParsedEvent) {
+  const haystack = `${e.title} ${e.description ?? ""}`.toLowerCase()
+  return haystack.includes("schichtleitung")
+}
+
 export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
   // Nach Tag und dann nach identischer Uhrzeit gruppieren.
   const days = useMemo(() => {
@@ -51,7 +57,12 @@ export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
         else byTime.set(key, [e])
       }
       const groups = Array.from(byTime.entries())
-        .map(([label, list]) => ({ label, list, sort: timeSortKey(list[0]) }))
+        .map(([label, list]) => ({
+          label,
+          // Innerhalb der gleichen Uhrzeit: "Schichtleitung" zuerst, sonst Reihenfolge beibehalten.
+          list: [...list].sort((a, b) => Number(isSchichtleitung(b)) - Number(isSchichtleitung(a))),
+          sort: timeSortKey(list[0]),
+        }))
         .sort((a, b) => a.sort - b.sort)
       return { date: dayEvents[0].start, groups }
     })
