@@ -7,15 +7,18 @@ import { eq } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { requireAdmin } from "@/lib/session"
 import { db } from "@/lib/db"
+import { OUTLOOK_CALENDAR_KEY } from "@/lib/settings-keys"
 import {
   pages,
   news,
   events,
   documents,
   images,
+  galleryAlbums,
   contactMessages,
   user,
   account,
+  settings,
 } from "@/lib/db/schema"
 
 export type ActionResult = { ok: boolean; error?: string }
@@ -48,11 +51,18 @@ export async function savePage(formData: FormData): Promise<ActionResult> {
   let slug = slugify(str(formData.get("slug")) || title)
   if (!slug) slug = `seite-${Date.now()}`
 
+  // Uebergeordnete Seite; niemals sich selbst als Elternteil zulassen.
+  const parentIdRaw = str(formData.get("parentId"))
+  const parsedParent = parentIdRaw ? Number.parseInt(parentIdRaw, 10) : null
+  const parentId = parsedParent && parsedParent !== Number(id) ? parsedParent : null
+
   const values = {
     slug,
     title,
     content: str(formData.get("content")),
+    excerpt: str(formData.get("excerpt")),
     coverImage: str(formData.get("coverImage")) || null,
+    parentId,
     visibility: normVisibility(formData.get("visibility")),
     sortOrder: Number.parseInt(str(formData.get("sortOrder")) || "0", 10) || 0,
     showInNav: formData.get("showInNav") === "on",
@@ -60,11 +70,17 @@ export async function savePage(formData: FormData): Promise<ActionResult> {
     updatedAt: new Date(),
   }
 
+  let parentSlug: string | null = null
   try {
     if (id) {
       await db.update(pages).set(values).where(eq(pages.id, Number(id)))
     } else {
       await db.insert(pages).values(values)
+    }
+    // Slug der Elternseite fuer gezielte Revalidierung ermitteln.
+    if (parentId) {
+      const parentRows = await db.select({ slug: pages.slug }).from(pages).where(eq(pages.id, parentId)).limit(1)
+      parentSlug = parentRows[0]?.slug ?? null
     }
   } catch {
     return { ok: false, error: "Der Slug wird bereits verwendet." }
@@ -74,6 +90,7 @@ export async function savePage(formData: FormData): Promise<ActionResult> {
   revalidatePath("/")
   revalidatePath(`/seite/${slug}`)
   revalidatePath(`/intern/seite/${slug}`)
+  if (parentSlug) revalidatePath(`/seite/${parentSlug}`)
   return { ok: true }
 }
 
@@ -110,7 +127,7 @@ export async function saveNews(formData: FormData): Promise<ActionResult> {
   }
 
   revalidatePath("/admin/aktuelles")
-  revalidatePath("/aktuelles")
+  revalidatePath("/seite/verein")
   revalidatePath("/")
   return { ok: true }
 }
@@ -119,7 +136,7 @@ export async function deleteNews(id: number): Promise<ActionResult> {
   await requireAdmin()
   await db.delete(news).where(eq(news.id, id))
   revalidatePath("/admin/aktuelles")
-  revalidatePath("/aktuelles")
+  revalidatePath("/seite/verein")
   return { ok: true }
 }
 
@@ -211,19 +228,85 @@ export async function deleteDocument(id: number): Promise<ActionResult> {
   return { ok: true }
 }
 
+// ---------------------------------------------------- Gallery albums --------
+export async function saveGalleryAlbum(formData: FormData): Promise<ActionResult> {
+  await requireAdmin()
+  const id = str(formData.get("id"))
+  const title = str(formData.get("title"))
+  if (!title) return { ok: false, error: "Titel ist erforderlich." }
+
+  let slug = slugify(str(formData.get("slug")) || title)
+  if (!slug) slug = `album-${Date.now()}`
+
+  const values = {
+    slug,
+    title,
+    description: str(formData.get("description")),
+    coverImage: str(formData.get("coverImage")) || null,
+    sortOrder: Number.parseInt(str(formData.get("sortOrder")) || "0", 10) || 0,
+    updatedAt: new Date(),
+  }
+
+  try {
+    if (id) {
+      await db.update(galleryAlbums).set(values).where(eq(galleryAlbums.id, Number(id)))
+    } else {
+      await db.insert(galleryAlbums).values(values)
+    }
+  } catch {
+    return { ok: false, error: "Der Slug wird bereits verwendet." }
+  }
+
+  revalidatePath("/admin/galerie")
+  revalidatePath("/galerie")
+  revalidatePath(`/galerie/${slug}`)
+  return { ok: true }
+}
+
+export async function deleteGalleryAlbum(id: number): Promise<ActionResult> {
+  await requireAdmin()
+  // Zuerst alle Bilder des Albums aus dem Blob-Speicher entfernen.
+  const albumImages = await db.select().from(images).where(eq(images.albumId, id))
+  for (const img of albumImages) {
+    if (img.url) {
+      const pathname = img.url.split("pathname=")[1]
+      if (pathname) {
+        try {
+          await del(decodeURIComponent(pathname))
+        } catch (e) {
+          console.error("Blob delete failed:", e)
+        }
+      }
+    }
+  }
+  // Bilder werden per ON DELETE CASCADE mitgeloescht.
+  await db.delete(galleryAlbums).where(eq(galleryAlbums.id, id))
+  revalidatePath("/admin/galerie")
+  revalidatePath("/galerie")
+  return { ok: true }
+}
+
 // --------------------------------------------------------------- Images -----
 export async function saveImage(formData: FormData): Promise<ActionResult> {
   await requireAdmin()
   const url = str(formData.get("url"))
+  const albumId = Number.parseInt(str(formData.get("albumId")), 10)
   if (!url) return { ok: false, error: "Bitte ein Bild hochladen." }
+  if (!albumId) return { ok: false, error: "Bitte ein Album auswählen." }
 
   await db.insert(images).values({
+    albumId,
     url,
     alt: str(formData.get("alt")),
     caption: str(formData.get("caption")) || null,
-    album: str(formData.get("album")) || "Allgemein",
     sortOrder: Number.parseInt(str(formData.get("sortOrder")) || "0", 10) || 0,
   })
+
+  // Falls das Album noch kein Titelbild hat, dieses Bild als Cover setzen.
+  const albumRows = await db.select().from(galleryAlbums).where(eq(galleryAlbums.id, albumId)).limit(1)
+  if (albumRows[0] && !albumRows[0].coverImage) {
+    await db.update(galleryAlbums).set({ coverImage: url, updatedAt: new Date() }).where(eq(galleryAlbums.id, albumId))
+  }
 
   revalidatePath("/admin/galerie")
   revalidatePath("/galerie")
@@ -352,5 +435,34 @@ export async function deleteMessage(id: number): Promise<ActionResult> {
   await requireAdmin()
   await db.delete(contactMessages).where(eq(contactMessages.id, id))
   revalidatePath("/admin/nachrichten")
+  return { ok: true }
+}
+
+// ------------------------------------------------------------- Settings -----
+export async function saveOutlookCalendarUrl(formData: FormData): Promise<ActionResult> {
+  await requireAdmin()
+  let url = str(formData.get("url"))
+
+  // Leere Eingabe = Verknuepfung entfernen
+  if (url) {
+    if (url.startsWith("webcal://")) url = "https://" + url.slice("webcal://".length)
+    let parsed: URL
+    try {
+      parsed = new URL(url)
+    } catch {
+      return { ok: false, error: "Bitte eine gültige URL eingeben." }
+    }
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      return { ok: false, error: "Die URL muss mit https:// beginnen." }
+    }
+  }
+
+  await db
+    .insert(settings)
+    .values({ key: OUTLOOK_CALENDAR_KEY, value: url, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: settings.key, set: { value: url, updatedAt: new Date() } })
+
+  revalidatePath("/admin/einstellungen")
+  revalidatePath("/intern/termine")
   return { ok: true }
 }

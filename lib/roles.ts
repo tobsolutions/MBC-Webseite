@@ -9,7 +9,8 @@ export function visibleScopesForRole(role: Role): string[] {
     case "admin":
       return ["public", "mitglied", "ausstellungshelfer"]
     case "mitglied":
-      return ["public", "mitglied"]
+      // Mitglieder sehen zusaetzlich alle Inhalte fuer Ausstellungshelfer.
+      return ["public", "mitglied", "ausstellungshelfer"]
     case "ausstellungshelfer":
       return ["public", "ausstellungshelfer"]
     default:

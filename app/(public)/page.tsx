@@ -31,7 +31,7 @@ export default async function HomePage() {
           </h1>
           <p className="mt-6 max-w-xl text-pretty text-lg leading-relaxed text-primary-foreground/80">
             Der Modellbauclub Bellenberg e.V. ist ein Verein für technisch Interessierte, handwerklich
-            Geschickte und kreative Köpfe. Ob Modellbahn, Flugmodell oder Diorama – bei uns wird gebaut,
+            Geschickte und kreative Köpfe. Ob Modellbahn oder Funktionsmodellbau – bei uns wird gebaut,
             gefachsimpelt und gemeinsam Freude am Detail gelebt.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
@@ -85,7 +85,7 @@ export default async function HomePage() {
               <h2 className="mt-2 font-serif text-3xl font-bold">Aktuelles aus dem Verein</h2>
             </div>
             <Button asChild variant="ghost" className="hidden sm:inline-flex">
-              <Link href="/aktuelles">
+              <Link href="/seite/verein#aktuelles">
                 Alle Beiträge <ArrowRight className="size-4" />
               </Link>
             </Button>

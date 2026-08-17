@@ -71,14 +71,16 @@ export const pages = pgTable("pages", {
   slug: text("slug").notNull().unique(),
   title: text("title").notNull(),
   content: text("content").notNull().default(""),
+  excerpt: text("excerpt").notNull().default(""),
   coverImage: text("coverImage"),
+  parentId: integer("parentId"),
   visibility: text("visibility").notNull().default("public"),
   sortOrder: integer("sortOrder").notNull().default(0),
   showInNav: boolean("showInNav").notNull().default(true),
   published: boolean("published").notNull().default(true),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
-})
+  })
 
 export const news = pgTable("news", {
   id: serial("id").primaryKey(),
@@ -118,8 +120,20 @@ export const documents = pgTable("documents", {
   createdAt: timestamp("createdAt").notNull().defaultNow(),
 })
 
+export const galleryAlbums = pgTable("gallery_albums", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  coverImage: text("coverImage"),
+  sortOrder: integer("sortOrder").notNull().default(0),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+})
+
 export const images = pgTable("images", {
   id: serial("id").primaryKey(),
+  albumId: integer("albumId").references(() => galleryAlbums.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
   alt: text("alt").notNull().default(""),
   caption: text("caption"),
@@ -136,4 +150,11 @@ export const contactMessages = pgTable("contact_messages", {
   message: text("message").notNull(),
   isRead: boolean("isRead").notNull().default(false),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
+})
+
+// Schluessel/Wert-Konfiguration (z. B. Outlook-Kalender-URL)
+export const settings = pgTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull().default(""),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 })

@@ -28,7 +28,7 @@ export default async function NewsDetailPage({ params }: { params: Promise<{ id:
   return (
     <article className="mx-auto max-w-3xl px-4 py-16">
       <Link
-        href="/aktuelles"
+        href="/seite/verein#aktuelles"
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-accent"
       >
         <ArrowLeft className="size-4" /> Zurück zu Aktuelles

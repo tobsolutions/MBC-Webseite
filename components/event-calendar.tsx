@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 export type CalendarEvent = {
-  id: number
+  id: number | string
   title: string
   description: string
   location: string | null
@@ -27,12 +27,14 @@ const scopeStyles: Record<string, string> = {
   public: "bg-accent",
   mitglied: "bg-primary",
   ausstellungshelfer: "bg-chart-4",
+  outlook: "bg-chart-3",
 }
 
 const scopeLabels: Record<string, string> = {
   public: "Öffentlich",
   mitglied: "Intern",
   ausstellungshelfer: "Ausstellung",
+  outlook: "Outlook",
 }
 
 function sameDay(a: Date, b: Date) {

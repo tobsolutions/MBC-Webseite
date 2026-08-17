@@ -15,14 +15,18 @@ type PageData = {
   slug: string
   title: string
   content: string
+  excerpt: string
   coverImage: string | null
+  parentId: number | null
   visibility: string
   sortOrder: number
   showInNav: boolean
   published: boolean
 }
 
-export function PageEditor({ page }: { page: PageData | null }) {
+type PageOption = { id: number; title: string }
+
+export function PageEditor({ page, allPages }: { page: PageData | null; allPages: PageOption[] }) {
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -60,6 +64,28 @@ export function PageEditor({ page }: { page: PageData | null }) {
       </div>
 
       <div className="space-y-1.5">
+        <Label htmlFor="parentId">Übergeordnete Seite</Label>
+        <select
+          id="parentId"
+          name="parentId"
+          defaultValue={page?.parentId ? String(page.parentId) : ""}
+          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+        >
+          <option value="">— Keine (eigenständige Hauptseite)</option>
+          {allPages
+            .filter((p) => p.id !== page?.id)
+            .map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.title}
+              </option>
+            ))}
+        </select>
+        <p className="text-xs text-muted-foreground">
+          Als Unterseite einer anderen Seite zuordnen. Erscheint dann im Menü als Dropdown.
+        </p>
+      </div>
+
+      <div className="space-y-1.5">
         <Label htmlFor="content">Inhalt</Label>
         <Textarea
           id="content"
@@ -67,6 +93,17 @@ export function PageEditor({ page }: { page: PageData | null }) {
           defaultValue={page?.content}
           rows={12}
           placeholder="Text der Seite. Leerzeile = neuer Absatz. Zeile mit # = Überschrift."
+        />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="excerpt">Kurztext-Auszug</Label>
+        <Textarea
+          id="excerpt"
+          name="excerpt"
+          defaultValue={page?.excerpt}
+          rows={3}
+          placeholder="Kurze Beschreibung, die in der Auflistung auf der übergeordneten Seite erscheint."
         />
       </div>
 

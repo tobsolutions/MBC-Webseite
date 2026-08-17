@@ -17,6 +17,7 @@ const VIS_LABEL: Record<string, string> = {
 
 export default async function AdminPages() {
   const pages = await getAllPages()
+  const titleById = new Map(pages.map((p) => [p.id, p.title]))
 
   return (
     <div className="space-y-6">
@@ -41,6 +42,9 @@ export default async function AdminPages() {
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{p.title}</span>
+                  {p.parentId && titleById.has(p.parentId) && (
+                    <Badge variant="outline">Unterseite von {titleById.get(p.parentId)}</Badge>
+                  )}
                   <Badge variant="secondary">{VIS_LABEL[p.visibility] ?? p.visibility}</Badge>
                   {p.published ? (
                     <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">

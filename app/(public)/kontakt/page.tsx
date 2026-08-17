@@ -28,8 +28,9 @@ export default function KontaktPage() {
                   <MapPin className="size-5" />
                 </span>
                 <div>
-                  <p className="font-medium">Vereinsheim</p>
-                  <p className="text-sm text-muted-foreground">89287 Bellenberg, Bayern</p>
+                  <p className="font-medium">Bahnhof Bellenberg</p>
+                  <p className="text-sm text-muted-foreground">Bahnhofstraße 11</p>
+                  <p className="text-sm text-muted-foreground">89287 Bellenberg</p>
                 </div>
               </li>
               <li className="flex items-start gap-3">
