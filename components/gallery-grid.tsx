@@ -1,8 +1,8 @@
 "use client"
 
 import Image from "next/image"
-import { useState } from "react"
-import { X } from "lucide-react"
+import { useCallback, useEffect, useState } from "react"
+import { ChevronLeft, ChevronRight, X } from "lucide-react"
 
 export type GalleryImage = {
   id: number
@@ -12,20 +12,41 @@ export type GalleryImage = {
 }
 
 export function GalleryGrid({ images }: { images: GalleryImage[] }) {
-  const [lightbox, setLightbox] = useState<GalleryImage | null>(null)
+  const [index, setIndex] = useState<number | null>(null)
+
+  const close = useCallback(() => setIndex(null), [])
+  const showPrev = useCallback(() => {
+    setIndex((i) => (i === null ? i : (i - 1 + images.length) % images.length))
+  }, [images.length])
+  const showNext = useCallback(() => {
+    setIndex((i) => (i === null ? i : (i + 1) % images.length))
+  }, [images.length])
+
+  useEffect(() => {
+    if (index === null) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") close()
+      else if (e.key === "ArrowLeft") showPrev()
+      else if (e.key === "ArrowRight") showNext()
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [index, close, showPrev, showNext])
 
   if (images.length === 0) {
     return <p className="text-muted-foreground">In diesem Album wurden noch keine Bilder hochgeladen.</p>
   }
 
+  const current = index === null ? null : images[index]
+
   return (
     <div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-        {images.map((img) => (
+        {images.map((img, i) => (
           <button
             key={img.id}
             type="button"
-            onClick={() => setLightbox(img)}
+            onClick={() => setIndex(i)}
             className="group relative aspect-square overflow-hidden rounded-sm border border-border bg-muted"
           >
             <Image
@@ -44,10 +65,10 @@ export function GalleryGrid({ images }: { images: GalleryImage[] }) {
         ))}
       </div>
 
-      {lightbox && (
+      {current && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4"
-          onClick={() => setLightbox(null)}
+          onClick={close}
           role="dialog"
           aria-modal="true"
         >
@@ -55,23 +76,56 @@ export function GalleryGrid({ images }: { images: GalleryImage[] }) {
             type="button"
             className="absolute right-4 top-4 rounded-sm bg-white/10 p-2 text-white hover:bg-white/20"
             aria-label="Schließen"
-            onClick={() => setLightbox(null)}
+            onClick={close}
           >
             <X className="size-5" />
           </button>
+
+          {images.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="absolute left-4 top-1/2 -translate-y-1/2 rounded-sm bg-white/10 p-2 text-white hover:bg-white/20"
+                aria-label="Vorheriges Bild"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  showPrev()
+                }}
+              >
+                <ChevronLeft className="size-6" />
+              </button>
+              <button
+                type="button"
+                className="absolute right-4 top-1/2 -translate-y-1/2 rounded-sm bg-white/10 p-2 text-white hover:bg-white/20"
+                aria-label="Nächstes Bild"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  showNext()
+                }}
+              >
+                <ChevronRight className="size-6" />
+              </button>
+            </>
+          )}
+
           <figure className="max-h-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
             <div className="relative max-h-[80vh]">
               <Image
-                src={lightbox.url || "/placeholder.svg"}
-                alt={lightbox.alt || lightbox.caption || "Galeriebild"}
+                src={current.url || "/placeholder.svg"}
+                alt={current.alt || current.caption || "Galeriebild"}
                 width={1200}
                 height={800}
                 className="h-auto max-h-[80vh] w-auto rounded-sm object-contain"
               />
             </div>
-            {lightbox.caption && (
-              <figcaption className="mt-3 text-center text-sm text-white/80">{lightbox.caption}</figcaption>
-            )}
+            <figcaption className="mt-3 flex items-center justify-center gap-3 text-sm text-white/80">
+              {current.caption && <span>{current.caption}</span>}
+              {images.length > 1 && (
+                <span className="font-mono text-xs text-white/60">
+                  {index! + 1} / {images.length}
+                </span>
+              )}
+            </figcaption>
           </figure>
         </div>
       )}
