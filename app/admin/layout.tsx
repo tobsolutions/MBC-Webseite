@@ -9,6 +9,7 @@ import {
   ImageIcon,
   Users,
   Mail,
+  Settings,
   ArrowLeft,
 } from "lucide-react"
 import { requireAdmin } from "@/lib/session"
@@ -34,6 +35,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       icon: <Mail className="size-4" />,
       badge: stats.unreadMessages > 0 ? stats.unreadMessages : undefined,
     },
+    { href: "/admin/einstellungen", label: "Einstellungen", icon: <Settings className="size-4" /> },
   ]
 
   return (

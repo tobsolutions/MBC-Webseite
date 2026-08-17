@@ -151,3 +151,10 @@ export const contactMessages = pgTable("contact_messages", {
   isRead: boolean("isRead").notNull().default(false),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
 })
+
+// Schluessel/Wert-Konfiguration (z. B. Outlook-Kalender-URL)
+export const settings = pgTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull().default(""),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+})

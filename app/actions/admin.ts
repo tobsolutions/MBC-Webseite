@@ -7,6 +7,7 @@ import { eq } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { requireAdmin } from "@/lib/session"
 import { db } from "@/lib/db"
+import { OUTLOOK_CALENDAR_KEY } from "@/lib/settings-keys"
 import {
   pages,
   news,
@@ -17,6 +18,7 @@ import {
   contactMessages,
   user,
   account,
+  settings,
 } from "@/lib/db/schema"
 
 export type ActionResult = { ok: boolean; error?: string }
@@ -433,5 +435,34 @@ export async function deleteMessage(id: number): Promise<ActionResult> {
   await requireAdmin()
   await db.delete(contactMessages).where(eq(contactMessages.id, id))
   revalidatePath("/admin/nachrichten")
+  return { ok: true }
+}
+
+// ------------------------------------------------------------- Settings -----
+export async function saveOutlookCalendarUrl(formData: FormData): Promise<ActionResult> {
+  await requireAdmin()
+  let url = str(formData.get("url"))
+
+  // Leere Eingabe = Verknuepfung entfernen
+  if (url) {
+    if (url.startsWith("webcal://")) url = "https://" + url.slice("webcal://".length)
+    let parsed: URL
+    try {
+      parsed = new URL(url)
+    } catch {
+      return { ok: false, error: "Bitte eine gültige URL eingeben." }
+    }
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+      return { ok: false, error: "Die URL muss mit https:// beginnen." }
+    }
+  }
+
+  await db
+    .insert(settings)
+    .values({ key: OUTLOOK_CALENDAR_KEY, value: url, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: settings.key, set: { value: url, updatedAt: new Date() } })
+
+  revalidatePath("/admin/einstellungen")
+  revalidatePath("/intern/termine")
   return { ok: true }
 }

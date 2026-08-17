@@ -1,6 +1,6 @@
 import "server-only"
 import { db } from "@/lib/db"
-import { pages, news, events, documents, images, galleryAlbums, contactMessages, user } from "@/lib/db/schema"
+import { pages, news, events, documents, images, galleryAlbums, contactMessages, user, settings } from "@/lib/db/schema"
 import { and, asc, desc, eq, gte, inArray, lt, sql } from "drizzle-orm"
 import type { Role } from "@/lib/roles"
 import { visibleScopesForRole as visibleScopesFor } from "@/lib/roles"
@@ -273,6 +273,12 @@ export async function getAllMembers() {
 
 export async function getContactMessages() {
   return db.select().from(contactMessages).orderBy(desc(contactMessages.createdAt))
+}
+
+// ---- Settings --------------------------------------------------------------
+export async function getSetting(key: string): Promise<string | null> {
+  const rows = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, key)).limit(1)
+  return rows[0]?.value ?? null
 }
 
 export async function getAdminStats() {
