@@ -13,6 +13,7 @@ import {
   events,
   documents,
   images,
+  galleryAlbums,
   contactMessages,
   user,
   account,
@@ -110,7 +111,7 @@ export async function saveNews(formData: FormData): Promise<ActionResult> {
   }
 
   revalidatePath("/admin/aktuelles")
-  revalidatePath("/aktuelles")
+  revalidatePath("/seite/verein")
   revalidatePath("/")
   return { ok: true }
 }
@@ -119,7 +120,7 @@ export async function deleteNews(id: number): Promise<ActionResult> {
   await requireAdmin()
   await db.delete(news).where(eq(news.id, id))
   revalidatePath("/admin/aktuelles")
-  revalidatePath("/aktuelles")
+  revalidatePath("/seite/verein")
   return { ok: true }
 }
 
@@ -211,19 +212,85 @@ export async function deleteDocument(id: number): Promise<ActionResult> {
   return { ok: true }
 }
 
+// ---------------------------------------------------- Gallery albums --------
+export async function saveGalleryAlbum(formData: FormData): Promise<ActionResult> {
+  await requireAdmin()
+  const id = str(formData.get("id"))
+  const title = str(formData.get("title"))
+  if (!title) return { ok: false, error: "Titel ist erforderlich." }
+
+  let slug = slugify(str(formData.get("slug")) || title)
+  if (!slug) slug = `album-${Date.now()}`
+
+  const values = {
+    slug,
+    title,
+    description: str(formData.get("description")),
+    coverImage: str(formData.get("coverImage")) || null,
+    sortOrder: Number.parseInt(str(formData.get("sortOrder")) || "0", 10) || 0,
+    updatedAt: new Date(),
+  }
+
+  try {
+    if (id) {
+      await db.update(galleryAlbums).set(values).where(eq(galleryAlbums.id, Number(id)))
+    } else {
+      await db.insert(galleryAlbums).values(values)
+    }
+  } catch {
+    return { ok: false, error: "Der Slug wird bereits verwendet." }
+  }
+
+  revalidatePath("/admin/galerie")
+  revalidatePath("/galerie")
+  revalidatePath(`/galerie/${slug}`)
+  return { ok: true }
+}
+
+export async function deleteGalleryAlbum(id: number): Promise<ActionResult> {
+  await requireAdmin()
+  // Zuerst alle Bilder des Albums aus dem Blob-Speicher entfernen.
+  const albumImages = await db.select().from(images).where(eq(images.albumId, id))
+  for (const img of albumImages) {
+    if (img.url) {
+      const pathname = img.url.split("pathname=")[1]
+      if (pathname) {
+        try {
+          await del(decodeURIComponent(pathname))
+        } catch (e) {
+          console.error("Blob delete failed:", e)
+        }
+      }
+    }
+  }
+  // Bilder werden per ON DELETE CASCADE mitgeloescht.
+  await db.delete(galleryAlbums).where(eq(galleryAlbums.id, id))
+  revalidatePath("/admin/galerie")
+  revalidatePath("/galerie")
+  return { ok: true }
+}
+
 // --------------------------------------------------------------- Images -----
 export async function saveImage(formData: FormData): Promise<ActionResult> {
   await requireAdmin()
   const url = str(formData.get("url"))
+  const albumId = Number.parseInt(str(formData.get("albumId")), 10)
   if (!url) return { ok: false, error: "Bitte ein Bild hochladen." }
+  if (!albumId) return { ok: false, error: "Bitte ein Album auswählen." }
 
   await db.insert(images).values({
+    albumId,
     url,
     alt: str(formData.get("alt")),
     caption: str(formData.get("caption")) || null,
-    album: str(formData.get("album")) || "Allgemein",
     sortOrder: Number.parseInt(str(formData.get("sortOrder")) || "0", 10) || 0,
   })
+
+  // Falls das Album noch kein Titelbild hat, dieses Bild als Cover setzen.
+  const albumRows = await db.select().from(galleryAlbums).where(eq(galleryAlbums.id, albumId)).limit(1)
+  if (albumRows[0] && !albumRows[0].coverImage) {
+    await db.update(galleryAlbums).set({ coverImage: url, updatedAt: new Date() }).where(eq(galleryAlbums.id, albumId))
+  }
 
   revalidatePath("/admin/galerie")
   revalidatePath("/galerie")

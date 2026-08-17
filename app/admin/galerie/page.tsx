@@ -1,9 +1,9 @@
-import { getAllImages } from "@/lib/queries"
-import { GalleryManager } from "@/components/admin/gallery-manager"
+import { getAllGalleryAlbums } from "@/lib/queries"
+import { GalleryAlbumsManager } from "@/components/admin/gallery-albums-manager"
 
 export const metadata = { title: "Galerie – Verwaltung | MBC Bellenberg" }
 
 export default async function AdminGallery() {
-  const items = await getAllImages()
-  return <GalleryManager items={items} />
+  const albums = await getAllGalleryAlbums()
+  return <GalleryAlbumsManager albums={albums} />
 }

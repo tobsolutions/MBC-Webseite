@@ -118,8 +118,20 @@ export const documents = pgTable("documents", {
   createdAt: timestamp("createdAt").notNull().defaultNow(),
 })
 
+export const galleryAlbums = pgTable("gallery_albums", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  coverImage: text("coverImage"),
+  sortOrder: integer("sortOrder").notNull().default(0),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+})
+
 export const images = pgTable("images", {
   id: serial("id").primaryKey(),
+  albumId: integer("albumId").references(() => galleryAlbums.id, { onDelete: "cascade" }),
   url: text("url").notNull(),
   alt: text("alt").notNull().default(""),
   caption: text("caption"),

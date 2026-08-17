@@ -1,55 +1,27 @@
 "use client"
 
 import Image from "next/image"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { X } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 export type GalleryImage = {
   id: number
   url: string
   alt: string
   caption: string | null
-  album: string
 }
 
 export function GalleryGrid({ images }: { images: GalleryImage[] }) {
-  const albums = useMemo(() => {
-    const set = Array.from(new Set(images.map((i) => i.album)))
-    return ["Alle", ...set]
-  }, [images])
-
-  const [album, setAlbum] = useState("Alle")
   const [lightbox, setLightbox] = useState<GalleryImage | null>(null)
 
-  const filtered = album === "Alle" ? images : images.filter((i) => i.album === album)
-
   if (images.length === 0) {
-    return <p className="text-muted-foreground">Es wurden noch keine Bilder hochgeladen.</p>
+    return <p className="text-muted-foreground">In diesem Album wurden noch keine Bilder hochgeladen.</p>
   }
 
   return (
     <div>
-      <div className="flex flex-wrap gap-2">
-        {albums.map((a) => (
-          <button
-            key={a}
-            type="button"
-            onClick={() => setAlbum(a)}
-            className={cn(
-              "rounded-sm border px-3 py-1.5 text-sm font-medium transition-colors",
-              album === a
-                ? "border-accent bg-accent text-accent-foreground"
-                : "border-border bg-transparent text-muted-foreground hover:text-foreground",
-            )}
-          >
-            {a}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-8 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-        {filtered.map((img) => (
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
+        {images.map((img) => (
           <button
             key={img.id}
             type="button"
@@ -60,6 +32,7 @@ export function GalleryGrid({ images }: { images: GalleryImage[] }) {
               src={img.url || "/placeholder.svg"}
               alt={img.alt || img.caption || "Galeriebild"}
               fill
+              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
             {img.caption && (

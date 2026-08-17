@@ -1,7 +1,7 @@
 import "server-only"
 import { db } from "@/lib/db"
-import { pages, news, events, documents, images, contactMessages, user } from "@/lib/db/schema"
-import { and, asc, desc, eq, gte, inArray, lt } from "drizzle-orm"
+import { pages, news, events, documents, images, galleryAlbums, contactMessages, user } from "@/lib/db/schema"
+import { and, asc, desc, eq, gte, inArray, lt, sql } from "drizzle-orm"
 import type { Role } from "@/lib/roles"
 import { visibleScopesForRole as visibleScopesFor } from "@/lib/roles"
 
@@ -75,9 +75,36 @@ export async function getEventsForScopes(scopes: string[]) {
     .orderBy(asc(events.startAt))
 }
 
-// ---- Gallery ---------------------------------------------------------------
-export async function getGalleryImages() {
-  return db.select().from(images).orderBy(asc(images.album), asc(images.sortOrder), desc(images.createdAt))
+// ---- Gallery (Alben) -------------------------------------------------------
+// Alle Galerie-Alben mit Anzahl der enthaltenen Bilder (fuer die Uebersicht).
+export async function getGalleryAlbums() {
+  return db
+    .select({
+      id: galleryAlbums.id,
+      slug: galleryAlbums.slug,
+      title: galleryAlbums.title,
+      description: galleryAlbums.description,
+      coverImage: galleryAlbums.coverImage,
+      sortOrder: galleryAlbums.sortOrder,
+      imageCount: sql<number>`count(${images.id})::int`,
+    })
+    .from(galleryAlbums)
+    .leftJoin(images, eq(images.albumId, galleryAlbums.id))
+    .groupBy(galleryAlbums.id)
+    .orderBy(asc(galleryAlbums.sortOrder), asc(galleryAlbums.title))
+}
+
+// Ein Album per Slug inkl. aller zugeordneten Bilder (fuer die Unterseite).
+export async function getGalleryAlbum(slug: string) {
+  const rows = await db.select().from(galleryAlbums).where(eq(galleryAlbums.slug, slug)).limit(1)
+  const album = rows[0]
+  if (!album) return null
+  const albumImages = await db
+    .select()
+    .from(images)
+    .where(eq(images.albumId, album.id))
+    .orderBy(asc(images.sortOrder), desc(images.createdAt))
+  return { album, images: albumImages }
 }
 
 // ---------------------------------------------------------------------------
@@ -167,8 +194,33 @@ export async function getAllDocuments() {
   return db.select().from(documents).orderBy(desc(documents.createdAt))
 }
 
-export async function getAllImages() {
-  return db.select().from(images).orderBy(asc(images.album), asc(images.sortOrder))
+export async function getAllGalleryAlbums() {
+  return db
+    .select({
+      id: galleryAlbums.id,
+      slug: galleryAlbums.slug,
+      title: galleryAlbums.title,
+      description: galleryAlbums.description,
+      coverImage: galleryAlbums.coverImage,
+      sortOrder: galleryAlbums.sortOrder,
+      imageCount: sql<number>`count(${images.id})::int`,
+    })
+    .from(galleryAlbums)
+    .leftJoin(images, eq(images.albumId, galleryAlbums.id))
+    .groupBy(galleryAlbums.id)
+    .orderBy(asc(galleryAlbums.sortOrder), asc(galleryAlbums.title))
+}
+
+export async function getGalleryAlbumById(id: number) {
+  const rows = await db.select().from(galleryAlbums).where(eq(galleryAlbums.id, id)).limit(1)
+  const album = rows[0]
+  if (!album) return null
+  const albumImages = await db
+    .select()
+    .from(images)
+    .where(eq(images.albumId, album.id))
+    .orderBy(asc(images.sortOrder), desc(images.createdAt))
+  return { album, images: albumImages }
 }
 
 export async function getAllMembers() {
@@ -194,7 +246,7 @@ export async function getAdminStats() {
     db.select({ id: news.id }).from(news),
     db.select({ id: events.id }).from(events),
     db.select({ id: documents.id }).from(documents),
-    db.select({ id: images.id }).from(images),
+    db.select({ id: galleryAlbums.id }).from(galleryAlbums),
     db.select({ id: user.id }).from(user),
     db.select({ id: contactMessages.id }).from(contactMessages).where(eq(contactMessages.isRead, false)),
   ])

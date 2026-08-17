@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Plus, Save } from "lucide-react"
+import Link from "next/link"
+import { ArrowLeft, Loader2, Plus, Save } from "lucide-react"
 import { saveImage, deleteImage } from "@/app/actions/admin"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -23,10 +24,15 @@ export type ImageItem = {
   url: string
   alt: string
   caption: string | null
-  album: string
 }
 
-function AddDialog({ albums }: { albums: string[] }) {
+export type AlbumInfo = {
+  id: number
+  title: string
+  description: string
+}
+
+function AddDialog({ albumId }: { albumId: number }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
@@ -42,6 +48,7 @@ function AddDialog({ albums }: { albums: string[] }) {
     }
     const fd = new FormData(e.currentTarget)
     fd.set("url", upload.url)
+    fd.set("albumId", String(albumId))
     startTransition(async () => {
       const res = await saveImage(fd)
       if (res.ok) {
@@ -77,15 +84,6 @@ function AddDialog({ albums }: { albums: string[] }) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="g-album">Album</Label>
-            <Input id="g-album" name="album" defaultValue="Allgemein" list="album-list" />
-            <datalist id="album-list">
-              {albums.map((a) => (
-                <option key={a} value={a} />
-              ))}
-            </datalist>
-          </div>
-          <div className="space-y-1.5">
             <Label htmlFor="g-alt">Bildbeschreibung (Alt-Text)</Label>
             <Input id="g-alt" name="alt" placeholder="z. B. Modellbahnanlage im Vereinsheim" />
           </div>
@@ -109,21 +107,27 @@ function AddDialog({ albums }: { albums: string[] }) {
   )
 }
 
-export function GalleryManager({ items }: { items: ImageItem[] }) {
-  const albums = Array.from(new Set(items.map((i) => i.album)))
-
+export function GalleryManager({ album, items }: { album: AlbumInfo; items: ImageItem[] }) {
   return (
     <div className="space-y-6">
+      <Link
+        href="/admin/galerie"
+        className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-accent"
+      >
+        <ArrowLeft className="size-4" /> Zurück zur Album-Übersicht
+      </Link>
+
       <header className="flex items-end justify-between gap-4">
         <div>
-          <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">Inhalte</p>
-          <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">Galerie</h1>
+          <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">Album</p>
+          <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">{album.title}</h1>
+          {album.description && <p className="mt-1 text-sm text-muted-foreground">{album.description}</p>}
         </div>
-        <AddDialog albums={albums} />
+        <AddDialog albumId={album.id} />
       </header>
 
       {items.length === 0 ? (
-        <Card className="p-4 text-sm text-muted-foreground">Noch keine Bilder hochgeladen.</Card>
+        <Card className="p-4 text-sm text-muted-foreground">Noch keine Bilder in diesem Album.</Card>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {items.map((img) => (
@@ -131,8 +135,7 @@ export function GalleryManager({ items }: { items: ImageItem[] }) {
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={img.url || "/placeholder.svg"} alt={img.alt} className="aspect-square w-full object-cover" />
               <div className="p-2">
-                <p className="truncate text-xs font-medium">{img.album}</p>
-                <p className="truncate text-xs text-muted-foreground">{img.caption || img.alt}</p>
+                <p className="truncate text-xs text-muted-foreground">{img.caption || img.alt || "Ohne Titel"}</p>
               </div>
               <div className="absolute right-1 top-1 opacity-0 transition-opacity group-hover:opacity-100">
                 <DeleteButton onDelete={() => deleteImage(img.id)} iconOnly title="Bild löschen?" />
