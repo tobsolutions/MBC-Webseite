@@ -21,17 +21,17 @@ export function SiteHeader({
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
+    <header className="sticky top-0 z-50 border-b border-brand bg-brand text-brand-foreground">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
         <Link href="/" className="flex items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-primary font-mono text-sm font-bold tracking-tight text-primary-foreground">
+          <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-brand-foreground font-mono text-sm font-bold tracking-tight text-brand">
             MBC
           </span>
           <span className="hidden flex-col leading-none sm:flex">
-            <span className="font-serif text-sm font-bold uppercase tracking-wide text-foreground">
+            <span className="font-serif text-sm font-bold uppercase tracking-wide text-brand-foreground">
               Modellbauclub
             </span>
-            <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <span className="text-xs font-medium uppercase tracking-widest text-brand-foreground/70">
               Bellenberg e.V.
             </span>
           </span>
@@ -47,8 +47,8 @@ export function SiteHeader({
                 className={cn(
                   "rounded-sm px-3 py-2 text-sm font-medium transition-colors",
                   active
-                    ? "text-accent"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "bg-brand-foreground/15 text-brand-foreground"
+                    : "text-brand-foreground/75 hover:text-brand-foreground",
                 )}
               >
                 {item.label}
@@ -58,7 +58,11 @@ export function SiteHeader({
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button asChild variant={isAuthenticated ? "default" : "outline"} size="sm" className="hidden sm:inline-flex">
+          <Button
+            asChild
+            size="sm"
+            className="hidden bg-brand-foreground text-brand hover:bg-brand-foreground/90 sm:inline-flex"
+          >
             <Link href="/intern">
               {isAuthenticated ? (
                 <>
@@ -74,7 +78,12 @@ export function SiteHeader({
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Menü öffnen">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-brand-foreground hover:bg-brand-foreground/15 hover:text-brand-foreground lg:hidden"
+                aria-label="Menü öffnen"
+              >
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
