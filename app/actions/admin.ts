@@ -480,3 +480,17 @@ export async function saveOutlookCalendarUrl(formData: FormData): Promise<Action
   revalidatePath("/intern/schichtplan")
   return { ok: true }
 }
+
+// Manueller Anstoss der taeglichen Zusammenfassung (zum Testen durch Admins).
+export async function triggerDigestNow(): Promise<ActionResult & { info?: string }> {
+  await requireAdmin()
+  const { runDailyDigest } = await import("@/lib/digest")
+  const res = await runDailyDigest()
+  if (res.skipped) return { ok: true, info: res.skipped }
+  return {
+    ok: true,
+    info: `${res.newEvents} neue Termine, ${res.newDocuments} neue Dokumente an ${res.sent} von ${res.recipients} Empfänger(n) gesendet${
+      res.failed > 0 ? `, ${res.failed} fehlgeschlagen` : ""
+    }.`,
+  }
+}

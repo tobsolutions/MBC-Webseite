@@ -8,6 +8,7 @@ import {
   FolderOpen,
   ArrowLeft,
   ShieldCheck,
+  UserCog,
 } from "lucide-react"
 import { requireUser, ROLE_LABELS } from "@/lib/session"
 import { getInternalNavPages } from "@/lib/queries"
@@ -58,6 +59,12 @@ export default async function InternLayout({ children }: { children: ReactNode }
           <DashboardNav items={items} />
 
           <div className="mt-6 flex flex-col gap-1 border-t border-border pt-4">
+            <Link
+              href="/intern/profil"
+              className="flex items-center gap-2.5 rounded-sm px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <UserCog className="size-4" /> Mein Profil
+            </Link>
             {user.role === "admin" && (
               <Link
                 href="/admin"
