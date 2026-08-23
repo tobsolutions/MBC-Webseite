@@ -38,7 +38,7 @@ function isAllDay(ev: VEvent): boolean {
  * wiederkehrende Termine in ein Zeitfenster. Ergebnis wird ueber den Next.js
  * Data Cache 15 Minuten zwischengespeichert und dann automatisch erneuert.
  */
-export async function fetchOutlookEvents(url: string): Promise<OutlookResult> {
+export async function fetchOutlookEvents(url: string, startDate?: string | null): Promise<OutlookResult> {
   const raw = (url ?? "").trim()
   if (!raw) return { ok: false, error: "Keine Kalender-URL hinterlegt." }
 
@@ -69,10 +69,15 @@ export async function fetchOutlookEvents(url: string): Promise<OutlookResult> {
     return { ok: false, error: "Kalenderdaten konnten nicht gelesen werden." }
   }
 
-  // Anzeigefenster: 2 Monate zurueck bis 18 Monate voraus.
+  // Anzeigefenster: standardmaessig 2 Monate zurueck bis 18 Monate voraus.
+  // Ist ein Startdatum konfiguriert, werden nur Termine ab diesem Tag angezeigt.
   const now = new Date()
-  const rangeStart = new Date(now.getFullYear(), now.getMonth() - 2, 1)
+  let rangeStart = new Date(now.getFullYear(), now.getMonth() - 2, 1)
   const rangeEnd = new Date(now.getFullYear(), now.getMonth() + 18, 0)
+  if (startDate) {
+    const parsedStart = new Date(`${startDate}T00:00:00`)
+    if (!Number.isNaN(parsedStart.getTime())) rangeStart = parsedStart
+  }
 
   const out: OutlookEvent[] = []
   const push = (ev: VEvent, start: Date, end: Date | null) => {

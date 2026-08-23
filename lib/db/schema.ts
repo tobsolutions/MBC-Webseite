@@ -17,6 +17,7 @@ export const user = pgTable("user", {
   emailVerified: boolean("emailVerified").notNull().default(false),
   image: text("image"),
   role: text("role").notNull().default("mitglied"),
+  notifyDigest: boolean("notifyDigest").notNull().default(false),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 })
@@ -103,6 +104,7 @@ export const events = pgTable("events", {
   endAt: timestamp("endAt"),
   allDay: boolean("allDay").notNull().default(false),
   visibility: text("visibility").notNull().default("public"),
+  clubInternal: boolean("clubInternal").notNull().default(false),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 })
