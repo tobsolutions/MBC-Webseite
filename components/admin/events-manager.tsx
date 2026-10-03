@@ -34,7 +34,7 @@ export type EventItem = {
 
 const VIS_LABEL: Record<string, string> = {
   public: "Öffentlich",
-  mitglied: "Mitglieder",
+  mitglied: "Mitgliederbereich",
   ausstellungshelfer: "Ausstellungshelfer",
 }
 
@@ -115,8 +115,7 @@ function EventDialog({ item, trigger }: { item: EventItem | null; trigger: React
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
             >
               <option value="public">Öffentlich</option>
-              <option value="mitglied">Nur Mitglieder</option>
-              <option value="ausstellungshelfer">Nur Ausstellungshelfer</option>
+              <option value="mitglied">Nur Mitgliederbereich</option>
             </select>
           </div>
           <label className="flex items-center gap-2 text-sm">

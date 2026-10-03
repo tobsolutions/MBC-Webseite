@@ -15,9 +15,13 @@ const VIS_LABEL: Record<string, string> = {
   ausstellungshelfer: "Ausstellungshelfer",
 }
 
+type PageRow = Awaited<ReturnType<typeof getAllPages>>[number]
+
 export default async function AdminPages() {
   const pages = await getAllPages()
   const titleById = new Map(pages.map((p) => [p.id, p.title]))
+  const publicPages = pages.filter((p) => p.visibility === "public")
+  const internalPages = pages.filter((p) => p.visibility !== "public")
 
   return (
     <div className="space-y-6">
@@ -33,9 +37,64 @@ export default async function AdminPages() {
         </Button>
       </header>
 
+      {pages.length === 0 ? (
+        <Card>
+          <p className="p-4 text-sm text-muted-foreground">Noch keine Seiten angelegt.</p>
+        </Card>
+      ) : (
+        <>
+          <PageGroup
+            title="Öffentliche Seiten"
+            description="Für alle Besucher der Webseite sichtbar."
+            pages={publicPages}
+            titleById={titleById}
+            showVisibility={false}
+          />
+          <PageGroup
+            title="Mitglieder & Ausstellungshelfer"
+            description="Nur im internen Bereich bzw. im Helferbereich sichtbar."
+            pages={internalPages}
+            titleById={titleById}
+            showVisibility
+          />
+        </>
+      )}
+    </div>
+  )
+}
+
+function PageGroup({
+  title,
+  description,
+  pages,
+  titleById,
+  showVisibility,
+}: {
+  title: string
+  description: string
+  pages: PageRow[]
+  titleById: Map<number, string>
+  showVisibility: boolean
+}) {
+  const headingId = `gruppe-${title.toLowerCase().replace(/[^a-z]+/g, "-")}`
+
+  return (
+    <section aria-labelledby={headingId} className="space-y-3">
+      <div className="flex items-baseline justify-between gap-4">
+        <div>
+          <h2 id={headingId} className="font-serif text-xl font-semibold tracking-tight">
+            {title}
+          </h2>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+        <span className="font-mono text-xs text-muted-foreground">
+          {pages.length} {pages.length === 1 ? "Seite" : "Seiten"}
+        </span>
+      </div>
+
       <Card className="divide-y divide-border">
         {pages.length === 0 ? (
-          <p className="p-4 text-sm text-muted-foreground">Noch keine Seiten angelegt.</p>
+          <p className="p-4 text-sm text-muted-foreground">Keine Seiten in dieser Gruppe.</p>
         ) : (
           pages.map((p) => (
             <div key={p.id} className="flex flex-wrap items-center gap-3 p-4">
@@ -45,7 +104,9 @@ export default async function AdminPages() {
                   {p.parentId && titleById.has(p.parentId) && (
                     <Badge variant="outline">Unterseite von {titleById.get(p.parentId)}</Badge>
                   )}
-                  <Badge variant="secondary">{VIS_LABEL[p.visibility] ?? p.visibility}</Badge>
+                  {showVisibility && (
+                    <Badge variant="secondary">{VIS_LABEL[p.visibility] ?? p.visibility}</Badge>
+                  )}
                   {p.published ? (
                     <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                       <Eye className="size-3.5" /> sichtbar
@@ -77,6 +138,6 @@ export default async function AdminPages() {
           ))
         )}
       </Card>
-    </div>
+    </section>
   )
 }
