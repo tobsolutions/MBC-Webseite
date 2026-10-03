@@ -27,7 +27,7 @@ export type Member = {
   createdAt: Date | string
 }
 
-const ROLES: Role[] = ["admin", "mitglied", "ausstellungshelfer"]
+const ROLES: Role[] = ["admin", "mitglied"]
 
 function CreateDialog() {
   const router = useRouter()

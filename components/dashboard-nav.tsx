@@ -17,7 +17,8 @@ export function DashboardNav({ items }: { items: DashboardNavItem[] }) {
   return (
     <nav className="flex flex-col gap-1">
       {items.map((item) => {
-        const active = pathname === item.href || (item.href !== "/intern" && item.href !== "/admin" && pathname.startsWith(item.href))
+        const isSectionRoot = ["/intern", "/admin", "/helfer"].includes(item.href)
+        const active = pathname === item.href || (!isSectionRoot && pathname.startsWith(item.href))
         return (
           <Link
             key={item.href}

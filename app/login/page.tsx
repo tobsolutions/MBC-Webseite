@@ -38,6 +38,12 @@ export default async function LoginPage({
           </p>
         </div>
         <LoginForm redirectTo={redirectTo || "/intern"} />
+        <p className="mt-6 border-t border-border pt-4 text-center text-xs text-muted-foreground">
+          Ausstellungshelfer ohne Konto?{" "}
+          <Link href="/helfer/zugang" className="font-medium text-accent hover:underline">
+            Zum Helferzugang
+          </Link>
+        </p>
       </Card>
     </main>
   )
