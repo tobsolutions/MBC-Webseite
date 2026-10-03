@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { FileUpload } from "@/components/file-upload"
+import { RichTextEditor } from "@/components/admin/rich-text-editor"
 
 type PageData = {
   id: number
@@ -86,14 +87,11 @@ export function PageEditor({ page, allPages }: { page: PageData | null; allPages
       </div>
 
       <div className="space-y-1.5">
-        <Label htmlFor="content">Inhalt</Label>
-        <Textarea
-          id="content"
-          name="content"
-          defaultValue={page?.content}
-          rows={12}
-          placeholder="Text der Seite. Leerzeile = neuer Absatz. Zeile mit # = Überschrift."
-        />
+        <Label>Inhalt</Label>
+        <RichTextEditor name="content" defaultValue={page?.content} placeholder="Inhalt der Seite" />
+        <p className="text-xs text-muted-foreground">
+          Text über die Werkzeugleiste formatieren. Über „HTML“ lässt sich der Quelltext direkt bearbeiten.
+        </p>
       </div>
 
       <div className="space-y-1.5">
