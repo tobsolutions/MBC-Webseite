@@ -196,6 +196,44 @@ export async function getInternalDocuments(role: Role) {
 }
 
 // ---------------------------------------------------------------------------
+// Helferzugang (Passwort ohne Benutzerkonto): nur Inhalte fuer Ausstellungshelfer.
+// ---------------------------------------------------------------------------
+const HELPER_SCOPE = "ausstellungshelfer"
+
+export async function getHelperNavPages() {
+  return db
+    .select({ slug: pages.slug, title: pages.title })
+    .from(pages)
+    .where(and(eq(pages.visibility, HELPER_SCOPE), eq(pages.published, true)))
+    .orderBy(asc(pages.sortOrder), asc(pages.title))
+}
+
+export async function getHelperPage(slug: string) {
+  const rows = await db
+    .select()
+    .from(pages)
+    .where(and(eq(pages.slug, slug), eq(pages.visibility, HELPER_SCOPE), eq(pages.published, true)))
+    .limit(1)
+  return rows[0] ?? null
+}
+
+export async function getHelperUpcomingEvents() {
+  return db
+    .select()
+    .from(events)
+    .where(and(eq(events.visibility, HELPER_SCOPE), gte(events.startAt, new Date())))
+    .orderBy(asc(events.startAt))
+}
+
+export async function getHelperDocuments() {
+  return db
+    .select()
+    .from(documents)
+    .where(eq(documents.visibility, HELPER_SCOPE))
+    .orderBy(desc(documents.createdAt))
+}
+
+// ---------------------------------------------------------------------------
 // Admin reads (full access)
 // ---------------------------------------------------------------------------
 export async function getAllPages() {

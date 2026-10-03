@@ -4,3 +4,5 @@ export const OUTLOOK_CALENDAR_KEY = "outlook_calendar_url"
 export const OUTLOOK_CALENDAR_START_KEY = "outlook_calendar_start"
 // Zeitpunkt (ISO) des letzten versendeten Tages-Digests.
 export const DIGEST_LAST_RUN_KEY = "digest_last_run"
+// scrypt-Hash ("salt:key") des gemeinsamen Passworts fuer den Helferzugang.
+export const HELPER_PASSWORD_KEY = "helper_password_hash"

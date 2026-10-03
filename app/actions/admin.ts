@@ -357,7 +357,7 @@ export async function createMember(formData: FormData): Promise<ActionResult> {
     name,
     email,
     emailVerified: true,
-    role: ["admin", "mitglied", "ausstellungshelfer"].includes(role) ? role : "mitglied",
+    role: role === "admin" ? "admin" : "mitglied",
     createdAt: now,
     updatedAt: now,
   })
@@ -377,7 +377,7 @@ export async function createMember(formData: FormData): Promise<ActionResult> {
 
 export async function updateMemberRole(userId: string, role: string): Promise<ActionResult> {
   await requireAdmin()
-  if (!["admin", "mitglied", "ausstellungshelfer"].includes(role)) {
+  if (!["admin", "mitglied"].includes(role)) {
     return { ok: false, error: "Ungültige Rolle." }
   }
   await db.update(user).set({ role, updatedAt: new Date() }).where(eq(user.id, userId))

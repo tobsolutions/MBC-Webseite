@@ -1,9 +1,24 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { get } from "@vercel/blob"
 import { getCurrentUser } from "@/lib/session"
+import { hasHelperCookie } from "@/lib/helper-access"
+import { getHelperDocuments } from "@/lib/queries"
+
+// Helfer (Passwortzugang) duerfen nur Dokumente mit Sichtbarkeit "ausstellungshelfer" laden.
+async function isHelperDocument(pathname: string) {
+  if (!(await hasHelperCookie())) return false
+  const docs = await getHelperDocuments()
+  return docs.some((doc) => {
+    try {
+      return new URL(doc.fileUrl, "http://localhost").searchParams.get("pathname") === pathname
+    } catch {
+      return false
+    }
+  })
+}
 
 // Serves files from the private Blob store.
-// - Files under "dokumente/" require an authenticated member (any role).
+// - Files under "dokumente/" require an authenticated member, or the helper password for helper documents.
 // - Other files (gallery/cover images) are served openly for the public site.
 export async function GET(request: NextRequest) {
   const pathname = request.nextUrl.searchParams.get("pathname")
@@ -13,7 +28,7 @@ export async function GET(request: NextRequest) {
 
   if (pathname.startsWith("dokumente/")) {
     const user = await getCurrentUser()
-    if (!user) {
+    if (!user && !(await isHelperDocument(pathname))) {
       return NextResponse.json({ error: "Nicht berechtigt" }, { status: 401 })
     }
   }

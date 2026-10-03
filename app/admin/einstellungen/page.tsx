@@ -1,16 +1,18 @@
 import { getSetting } from "@/lib/queries"
 import { fetchOutlookEvents } from "@/lib/outlook-calendar"
-import { OUTLOOK_CALENDAR_KEY, OUTLOOK_CALENDAR_START_KEY } from "@/lib/settings-keys"
+import { HELPER_PASSWORD_KEY, OUTLOOK_CALENDAR_KEY, OUTLOOK_CALENDAR_START_KEY } from "@/lib/settings-keys"
 import { OutlookCalendarForm } from "@/components/admin/outlook-calendar-form"
+import { HelperPasswordForm } from "@/components/admin/helper-password-form"
 import { DigestTestButton } from "@/components/admin/digest-test-button"
 import { Card } from "@/components/ui/card"
 
 export const metadata = { title: "Einstellungen – Verwaltung | MBC Bellenberg" }
 
 export default async function AdminSettings() {
-  const [url, startDate] = await Promise.all([
+  const [url, startDate, helperPasswordHash] = await Promise.all([
     getSetting(OUTLOOK_CALENDAR_KEY),
     getSetting(OUTLOOK_CALENDAR_START_KEY),
+    getSetting(HELPER_PASSWORD_KEY),
   ])
   const calendarUrl = url ?? ""
   const calendarStart = startDate ?? ""
@@ -39,6 +41,19 @@ export default async function AdminSettings() {
         </p>
         <div className="mt-6">
           <OutlookCalendarForm currentUrl={calendarUrl} currentStartDate={calendarStart} status={status} />
+        </div>
+      </Card>
+
+      <Card className="max-w-2xl p-6">
+        <h2 className="font-serif text-xl font-bold">Helferzugang Ausstellung</h2>
+        <p className="mt-1 text-sm text-muted-foreground text-pretty">
+          Ausstellungshelfer benötigen kein Benutzerkonto. Mit einem gemeinsamen Passwort erhalten sie unter{" "}
+          <code className="rounded bg-secondary px-1 py-0.5 text-xs">/helfer</code> Zugriff auf den Schichtplan sowie
+          alle Seiten, Termine und Dokumente mit der Sichtbarkeit „Ausstellungshelfer". Angemeldete Mitglieder sehen
+          diese Inhalte weiterhin automatisch.
+        </p>
+        <div className="mt-6">
+          <HelperPasswordForm configured={Boolean(helperPasswordHash)} />
         </div>
       </Card>
 
