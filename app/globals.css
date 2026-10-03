@@ -169,3 +169,64 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .cms-content > * + * {
+    @apply mt-4;
+  }
+  .cms-content h2 {
+    @apply mt-8 font-serif text-2xl font-bold text-foreground;
+  }
+  .cms-content h3 {
+    @apply mt-6 font-serif text-xl font-bold text-foreground;
+  }
+  .cms-content h4 {
+    @apply mt-5 font-semibold text-foreground;
+  }
+  .cms-content > :first-child {
+    @apply mt-0;
+  }
+  .cms-content p {
+    @apply text-pretty;
+  }
+  .cms-content a {
+    @apply font-medium text-primary underline underline-offset-2 hover:text-accent;
+  }
+  .cms-content ul {
+    @apply list-disc space-y-1 pl-5 marker:text-accent;
+  }
+  .cms-content ol {
+    @apply list-decimal space-y-1 pl-5 marker:text-accent;
+  }
+  .cms-content li > p {
+    @apply mt-0;
+  }
+  .cms-content blockquote {
+    @apply border-l-4 border-accent/60 pl-4 italic text-muted-foreground;
+  }
+  .cms-content hr {
+    @apply my-8 border-border;
+  }
+  .cms-content img {
+    @apply h-auto max-w-full rounded-md;
+  }
+  .cms-content code {
+    @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.9em];
+  }
+  .cms-content pre {
+    @apply overflow-x-auto rounded-md bg-muted p-4 font-mono text-sm;
+  }
+  .cms-content table {
+    @apply w-full border-collapse text-sm;
+  }
+  .cms-content th,
+  .cms-content td {
+    @apply border border-border px-3 py-2 text-left;
+  }
+  .cms-content th {
+    @apply bg-muted font-semibold;
+  }
+  .ProseMirror-selectednode {
+    @apply outline-2 outline-primary;
+  }
+}
