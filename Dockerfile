@@ -7,7 +7,7 @@ FROM node:20-alpine AS base
 # libc6-compat wird von einigen Node-Modulen unter Alpine benoetigt
 RUN apk add --no-cache libc6-compat
 # pnpm via corepack aktivieren
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@10.34.3 --activate
 WORKDIR /app
 
 ##########
@@ -26,6 +26,8 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # Telemetrie abschalten und Produktions-Build erzeugen
 ENV NEXT_TELEMETRY_DISABLED=1
+# Aktiviert output: "standalone" in next.config.mjs (wird fuer server.js benoetigt)
+ENV BUILD_STANDALONE=1
 RUN pnpm build
 
 ##########
