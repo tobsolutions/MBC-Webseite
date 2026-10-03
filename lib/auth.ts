@@ -27,6 +27,29 @@ function resolveTrustedOrigins() {
     if (process.env.VERCEL_PROJECT_PRODUCTION_URL)
       origins.push(`https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`)
   }
+
+  // Self-Hosting (Docker/Plesk): Seite ist oft mit und ohne "www" erreichbar.
+  // Beide Varianten der BETTER_AUTH_URL zulassen, sonst schlaegt der Login mit
+  // "Invalid origin" fehl.
+  if (process.env.BETTER_AUTH_URL) {
+    try {
+      const url = new URL(process.env.BETTER_AUTH_URL)
+      origins.push(url.origin)
+      const altHost = url.hostname.startsWith("www.")
+        ? url.hostname.slice(4)
+        : `www.${url.hostname}`
+      origins.push(`${url.protocol}//${altHost}${url.port ? `:${url.port}` : ""}`)
+    } catch {
+      // ungueltige URL ignorieren
+    }
+  }
+
+  // Weitere erlaubte Adressen, kommagetrennt (z. B. Test-Subdomain).
+  for (const origin of (process.env.TRUSTED_ORIGINS ?? "").split(",")) {
+    const trimmed = origin.trim().replace(/\/+$/, "")
+    if (trimmed) origins.push(trimmed)
+  }
+
   return origins
 }
 
