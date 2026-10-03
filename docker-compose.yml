@@ -7,8 +7,8 @@ services:
     container_name: mbc-bellenberg-web
     restart: unless-stopped
     ports:
-      # Host-Port 3000 -> Container-Port 3000 (bei Bedarf anpassen, z. B. "8080:3000")
-      - "3000:3000"
+      # Nur lokal auf dem Server erreichbar; Plesk/nginx leitet die Domain an 127.0.0.1:3000 weiter.
+      - "127.0.0.1:3000:3000"
     # Umgebungsvariablen aus der .env-Datei laden (siehe .env.example)
     env_file:
       - .env
