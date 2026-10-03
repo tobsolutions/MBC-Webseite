@@ -4,6 +4,8 @@ services:
       context: .
       dockerfile: Dockerfile
     image: mbc-bellenberg-web
+    # Bei jedem "docker compose up" neu bauen, sonst verwendet Plesk das alte Image weiter.
+    pull_policy: build
     container_name: mbc-bellenberg-web
     restart: unless-stopped
     ports:
