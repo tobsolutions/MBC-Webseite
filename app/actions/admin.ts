@@ -157,7 +157,7 @@ export async function saveEvent(formData: FormData): Promise<ActionResult> {
     startAt: new Date(startRaw),
     endAt: endRaw ? new Date(endRaw) : null,
     allDay: formData.get("allDay") === "on",
-    visibility: normVisibility(formData.get("visibility")),
+    visibility: formData.get("visibility") === "mitglied" ? "mitglied" : "public",
     clubInternal: formData.get("clubInternal") === "on",
     updatedAt: new Date(),
   }
