@@ -18,6 +18,7 @@ export default async function TerminePage() {
     endAt: e.endAt ? e.endAt.toISOString() : null,
     allDay: e.allDay,
     visibility: e.visibility,
+    clubInternal: e.clubInternal,
   }))
 
   return (
@@ -28,7 +29,7 @@ export default async function TerminePage() {
         subtitle="Öffentliche Vereinsabende, Ausstellungen und Veranstaltungen. Gäste sind herzlich willkommen."
       />
       <div className="mx-auto max-w-6xl px-4 py-16">
-        <EventCalendar events={calendarEvents} />
+        <EventCalendar events={calendarEvents} publicView />
       </div>
     </div>
   )

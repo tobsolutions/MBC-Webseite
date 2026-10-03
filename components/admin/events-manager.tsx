@@ -29,6 +29,7 @@ export type EventItem = {
   endAt: Date | string | null
   allDay: boolean
   visibility: string
+  clubInternal: boolean
 }
 
 const VIS_LABEL: Record<string, string> = {
@@ -122,6 +123,15 @@ function EventDialog({ item, trigger }: { item: EventItem | null; trigger: React
             <input type="checkbox" name="allDay" defaultChecked={item?.allDay ?? false} className="size-4" />
             Ganztägig
           </label>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              name="clubInternal"
+              defaultChecked={item?.clubInternal ?? false}
+              className="size-4"
+            />
+            Als „vereinsintern" kennzeichnen
+          </label>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
@@ -150,6 +160,7 @@ export function EventsManager({ items }: { items: EventItem[] }) {
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-medium">{item.title}</span>
             <Badge variant="secondary">{VIS_LABEL[item.visibility] ?? item.visibility}</Badge>
+            {item.clubInternal && <Badge variant="outline">Vereinsintern</Badge>}
           </div>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {formatEventWhen(item.startAt, item.endAt, item.allDay)}

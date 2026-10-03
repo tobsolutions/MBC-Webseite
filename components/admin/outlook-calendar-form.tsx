@@ -12,9 +12,11 @@ type Status = { ok: true; count: number } | { ok: false; error: string } | null
 
 export function OutlookCalendarForm({
   currentUrl,
+  currentStartDate,
   status,
 }: {
   currentUrl: string
+  currentStartDate: string
   status: Status
 }) {
   const router = useRouter()
@@ -52,6 +54,14 @@ export function OutlookCalendarForm({
         />
         <p className="text-xs text-muted-foreground">
           Fügen Sie den veröffentlichten ICS-Link ein. Zum Entfernen das Feld leeren und speichern.
+        </p>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label htmlFor="startDate">Termine anzeigen ab</Label>
+        <Input id="startDate" name="startDate" type="date" defaultValue={currentStartDate} />
+        <p className="text-xs text-muted-foreground">
+          Nur Termine ab diesem Datum werden angezeigt. Leer lassen, um alle Termine zu zeigen.
         </p>
       </div>
 

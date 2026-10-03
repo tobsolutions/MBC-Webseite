@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { requireAdmin } from "@/lib/session"
 import { db } from "@/lib/db"
-import { OUTLOOK_CALENDAR_KEY } from "@/lib/settings-keys"
+import { OUTLOOK_CALENDAR_KEY, OUTLOOK_CALENDAR_START_KEY } from "@/lib/settings-keys"
 import {
   pages,
   news,
@@ -158,6 +158,7 @@ export async function saveEvent(formData: FormData): Promise<ActionResult> {
     endAt: endRaw ? new Date(endRaw) : null,
     allDay: formData.get("allDay") === "on",
     visibility: normVisibility(formData.get("visibility")),
+    clubInternal: formData.get("clubInternal") === "on",
     updatedAt: new Date(),
   }
 
@@ -457,12 +458,39 @@ export async function saveOutlookCalendarUrl(formData: FormData): Promise<Action
     }
   }
 
+  // Optionales Startdatum: nur Termine ab diesem Tag anzeigen (YYYY-MM-DD).
+  let startDate = str(formData.get("startDate")).trim()
+  if (startDate && !/^\d{4}-\d{2}-\d{2}$/.test(startDate)) {
+    return { ok: false, error: "Bitte ein gültiges Startdatum wählen." }
+  }
+  if (!url) startDate = ""
+
   await db
     .insert(settings)
     .values({ key: OUTLOOK_CALENDAR_KEY, value: url, updatedAt: new Date() })
     .onConflictDoUpdate({ target: settings.key, set: { value: url, updatedAt: new Date() } })
 
+  await db
+    .insert(settings)
+    .values({ key: OUTLOOK_CALENDAR_START_KEY, value: startDate, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: settings.key, set: { value: startDate, updatedAt: new Date() } })
+
   revalidatePath("/admin/einstellungen")
   revalidatePath("/intern/termine")
+  revalidatePath("/intern/schichtplan")
   return { ok: true }
+}
+
+// Manueller Anstoss der taeglichen Zusammenfassung (zum Testen durch Admins).
+export async function triggerDigestNow(): Promise<ActionResult & { info?: string }> {
+  await requireAdmin()
+  const { runDailyDigest } = await import("@/lib/digest")
+  const res = await runDailyDigest()
+  if (res.skipped) return { ok: true, info: res.skipped }
+  return {
+    ok: true,
+    info: `${res.newEvents} neue Termine, ${res.newDocuments} neue Dokumente an ${res.sent} von ${res.recipients} Empfänger(n) gesendet${
+      res.failed > 0 ? `, ${res.failed} fehlgeschlagen` : ""
+    }.`,
+  }
 }

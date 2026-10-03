@@ -15,6 +15,7 @@ export type CalendarEvent = {
   endAt: string | null
   allDay: boolean
   visibility: string
+  clubInternal?: boolean
 }
 
 const WEEKDAYS = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
@@ -46,9 +47,11 @@ function sameDay(a: Date, b: Date) {
 export function EventCalendar({
   events,
   showLegend = false,
+  publicView = false,
 }: {
   events: CalendarEvent[]
   showLegend?: boolean
+  publicView?: boolean
 }) {
   const today = new Date()
   const [cursor, setCursor] = useState(new Date(today.getFullYear(), today.getMonth(), 1))
@@ -188,9 +191,17 @@ export function EventCalendar({
               <div key={e.id} className="rounded-sm border border-border bg-card p-4">
                 <div className="flex items-start justify-between gap-2">
                   <h4 className="font-serif font-bold leading-snug">{e.title}</h4>
-                  <Badge variant="secondary" className="shrink-0 font-mono text-[10px] uppercase">
-                    {scopeLabels[e.visibility] ?? e.visibility}
-                  </Badge>
+                  {publicView ? (
+                    e.clubInternal && (
+                      <Badge variant="secondary" className="shrink-0 font-mono text-[10px] uppercase">
+                        Vereinsintern
+                      </Badge>
+                    )
+                  ) : (
+                    <Badge variant="secondary" className="shrink-0 font-mono text-[10px] uppercase">
+                      {scopeLabels[e.visibility] ?? e.visibility}
+                    </Badge>
+                  )}
                 </div>
                 <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Clock className="size-3.5" />

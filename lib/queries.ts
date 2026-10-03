@@ -281,6 +281,12 @@ export async function getSetting(key: string): Promise<string | null> {
   return rows[0]?.value ?? null
 }
 
+// Digest-Einstellung (Opt-in) eines einzelnen Nutzers.
+export async function getUserDigestPreference(userId: string): Promise<boolean> {
+  const rows = await db.select({ notifyDigest: user.notifyDigest }).from(user).where(eq(user.id, userId)).limit(1)
+  return rows[0]?.notifyDigest ?? false
+}
+
 export async function getAdminStats() {
   const [p, n, e, d, i, m, msgs] = await Promise.all([
     db.select({ id: pages.id }).from(pages),
