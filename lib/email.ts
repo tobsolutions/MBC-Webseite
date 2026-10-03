@@ -1,7 +1,14 @@
 import "server-only"
 import { Resend } from "resend"
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Erst beim Versand erzeugen: Beim Docker-Build sind keine Umgebungsvariablen
+// gesetzt, und `new Resend()` ohne API-Key wirft sofort einen Fehler.
+let resendClient: Resend | null = null
+function getResend(): Resend {
+  if (!process.env.RESEND_API_KEY) throw new Error("RESEND_API_KEY ist nicht gesetzt.")
+  resendClient ??= new Resend(process.env.RESEND_API_KEY)
+  return resendClient
+}
 
 // Absender: eigene verifizierte Domain bevorzugt, sonst Resend-Testabsender.
 export const DIGEST_FROM = process.env.DIGEST_FROM_EMAIL ?? "MBC Bellenberg <onboarding@resend.dev>"
@@ -84,7 +91,7 @@ export function renderDigestHtml(data: DigestData): string {
 
 export async function sendDigestEmail(to: string, data: DigestData): Promise<{ ok: boolean; error?: string }> {
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from: DIGEST_FROM,
       to,
       subject: "MBC Bellenberg – Neue Termine und Dokumente",
