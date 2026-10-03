@@ -13,9 +13,25 @@ function getResend(): Resend {
 // Absender: eigene verifizierte Domain bevorzugt, sonst Resend-Testabsender.
 export const DIGEST_FROM = process.env.DIGEST_FROM_EMAIL ?? "MBC Bellenberg <onboarding@resend.dev>"
 
-// Oeffentliche Basis-URL fuer Links in E-Mails.
+function normalizeOrigin(raw: string | undefined): string | null {
+  const value = (raw ?? "").trim().replace(/\/+$/, "")
+  if (!value) return null
+  try {
+    return new URL(/^https?:\/\//i.test(value) ? value : `https://${value}`).origin
+  } catch {
+    return null
+  }
+}
+
+// Oeffentliche Basis-URL fuer Links in E-Mails. APP_URL und BETTER_AUTH_URL
+// werden zur Laufzeit gelesen (wichtig fuer Docker); NEXT_PUBLIC_* wird dagegen
+// schon beim Build fest eingesetzt.
 export function resolveAppURL(): string {
-  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL
+  const configured =
+    normalizeOrigin(process.env.APP_URL) ??
+    normalizeOrigin(process.env.BETTER_AUTH_URL) ??
+    normalizeOrigin(process.env.NEXT_PUBLIC_APP_URL)
+  if (configured) return configured
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`
   return process.env.V0_RUNTIME_URL ?? "http://localhost:3000"
