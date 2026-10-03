@@ -1,18 +1,37 @@
 import Link from "next/link"
 import { ArrowRight, CalendarClock, CalendarDays, FileDown, FileText, MapPin } from "lucide-react"
 import { requireHelperAccess } from "@/lib/helper-access"
-import { getHelperDocuments, getHelperNavPages, getHelperUpcomingEvents } from "@/lib/queries"
+import { getHelperDocuments, getHelperNavPages, getSetting } from "@/lib/queries"
+import { fetchOutlookEvents } from "@/lib/outlook-calendar"
+import { OUTLOOK_CALENDAR_KEY, OUTLOOK_CALENDAR_START_KEY } from "@/lib/settings-keys"
 import { formatDate, formatFileSize } from "@/lib/format"
 
 export const metadata = {
   title: "Helferbereich – Ausstellung | MBC Bellenberg e.V.",
 }
 
+const UPCOMING_LIMIT = 8
+
+async function getUpcomingOutlookEvents() {
+  const [url, startDate] = await Promise.all([
+    getSetting(OUTLOOK_CALENDAR_KEY),
+    getSetting(OUTLOOK_CALENDAR_START_KEY),
+  ])
+  if (!url) return []
+  const result = await fetchOutlookEvents(url, startDate)
+  if (!result.ok) return []
+  const now = Date.now()
+  return result.events
+    .filter((ev) => new Date(ev.endAt ?? ev.startAt).getTime() >= now)
+    .slice(0, UPCOMING_LIMIT)
+    .map((ev) => ({ ...ev, startAt: new Date(ev.startAt) }))
+}
+
 export default async function HelperOverviewPage() {
   await requireHelperAccess()
   const [pages, events, documents] = await Promise.all([
     getHelperNavPages(),
-    getHelperUpcomingEvents(),
+    getUpcomingOutlookEvents(),
     getHelperDocuments(),
   ])
 

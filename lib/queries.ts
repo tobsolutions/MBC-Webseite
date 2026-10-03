@@ -217,13 +217,6 @@ export async function getHelperPage(slug: string) {
   return rows[0] ?? null
 }
 
-export async function getHelperUpcomingEvents() {
-  return db
-    .select()
-    .from(events)
-    .where(and(eq(events.visibility, HELPER_SCOPE), gte(events.startAt, new Date())))
-    .orderBy(asc(events.startAt))
-}
 
 export async function getHelperDocuments() {
   return db
