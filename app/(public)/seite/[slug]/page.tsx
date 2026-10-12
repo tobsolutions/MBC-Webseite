@@ -4,6 +4,7 @@ import { getPublicPage, getPublishedNews, getChildPages, getPageAncestors } from
 import { PageBreadcrumb } from "@/components/page-breadcrumb"
 import { PageHero } from "@/components/page-hero"
 import { RichText } from "@/components/rich-text"
+import { PageGallery } from "@/components/page-gallery"
 import { NewsGrid } from "@/components/news-grid"
 import { SubpageList } from "@/components/subpage-list"
 
@@ -50,6 +51,12 @@ export default async function CmsPage({ params }: { params: Promise<{ slug: stri
       <div className="mx-auto max-w-3xl px-4 py-16">
         <RichText content={page.content} />
       </div>
+
+      {page.gallery.length > 0 && (
+        <div className="mx-auto max-w-6xl px-4 pb-16">
+          <PageGallery items={page.gallery} title={page.title} />
+        </div>
+      )}
 
       {children.length > 0 && (
         <section className="border-t border-border bg-secondary/50">

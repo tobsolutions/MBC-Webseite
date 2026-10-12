@@ -10,8 +10,11 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { FileUpload } from "@/components/file-upload"
 import { RichTextEditor } from "@/components/admin/rich-text-editor"
+import { PageGalleryEditor } from "@/components/admin/page-gallery-editor"
+import type { PageGalleryItem } from "@/lib/db/schema"
 
 type PageData = {
+  gallery: PageGalleryItem[]
   id: number
   slug: string
   title: string
@@ -32,12 +35,14 @@ export function PageEditor({ page, allPages }: { page: PageData | null; allPages
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [coverImage, setCoverImage] = useState<string | null>(page?.coverImage ?? null)
+  const [gallery, setGallery] = useState<PageGalleryItem[]>(page?.gallery ?? [])
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     const formData = new FormData(e.currentTarget)
     formData.set("coverImage", coverImage ?? "")
+    formData.set("gallery", JSON.stringify(gallery))
     startTransition(async () => {
       const res = await savePage(formData)
       if (res.ok) {
@@ -116,6 +121,14 @@ export function PageEditor({ page, allPages }: { page: PageData | null; allPages
           onUploaded={(r) => setCoverImage(r.url)}
           onClear={() => setCoverImage(null)}
         />
+      </div>
+
+      <div className="space-y-1.5">
+        <Label>Bildergalerie (optional)</Label>
+        <p className="text-xs text-muted-foreground">
+          Eigene Bilder nur für diese Seite. Sie erscheinen unter dem Inhalt und sind unabhängig von der Galerie-Seite.
+        </p>
+        <PageGalleryEditor items={gallery} onChange={setGallery} />
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">

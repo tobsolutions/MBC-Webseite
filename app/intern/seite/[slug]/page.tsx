@@ -5,6 +5,7 @@ import { getInternalPage, getPageAncestors } from "@/lib/queries"
 import { visibleScopesForRole } from "@/lib/roles"
 import { PageBreadcrumb } from "@/components/page-breadcrumb"
 import { RichText } from "@/components/rich-text"
+import { PageGallery } from "@/components/page-gallery"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -48,6 +49,12 @@ export default async function InternCmsPage({ params }: { params: Promise<{ slug
       <div className="mt-6">
         <RichText content={page.content} />
       </div>
+
+      {page.gallery.length > 0 && (
+        <div className="mt-10">
+          <PageGallery items={page.gallery} title={page.title} />
+        </div>
+      )}
     </article>
   )
 }
