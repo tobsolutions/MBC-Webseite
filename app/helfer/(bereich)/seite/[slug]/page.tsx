@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation"
 import Image from "next/image"
 import { requireHelperAccess } from "@/lib/helper-access"
-import { getHelperPage } from "@/lib/queries"
+import { getHelperPage, getPageAncestors } from "@/lib/queries"
+import { PageBreadcrumb } from "@/components/page-breadcrumb"
 import { RichText } from "@/components/rich-text"
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -17,8 +18,20 @@ export default async function HelperCmsPage({ params }: { params: Promise<{ slug
   const page = await getHelperPage(slug)
   if (!page) notFound()
 
+  const ancestors = page.parentId != null ? await getPageAncestors(page.parentId, ["ausstellungshelfer"]) : []
+
   return (
     <article>
+      {page.parentId != null && (
+        <PageBreadcrumb
+          className="mb-4"
+          current={page.title}
+          items={[
+            { href: "/helfer", label: "Helferbereich" },
+            ...ancestors.map((a) => ({ href: `/helfer/seite/${a.slug}`, label: a.title })),
+          ]}
+        />
+      )}
       <header className="border-b border-border pb-6">
         <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">Ausstellung</p>
         <h1 className="mt-2 font-serif text-3xl font-bold text-balance">{page.title}</h1>

@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { getPublicPage, getPublishedNews, getChildPages } from "@/lib/queries"
+import { getPublicPage, getPublishedNews, getChildPages, getPageAncestors } from "@/lib/queries"
+import { PageBreadcrumb } from "@/components/page-breadcrumb"
 import { PageHero } from "@/components/page-hero"
 import { RichText } from "@/components/rich-text"
 import { NewsGrid } from "@/components/news-grid"
@@ -25,14 +26,27 @@ export default async function CmsPage({ params }: { params: Promise<{ slug: stri
   if (!page) notFound()
 
   const showNews = slug === "verein"
-  const [news, children] = await Promise.all([
+  const [news, children, ancestors] = await Promise.all([
     showNews ? getPublishedNews() : Promise.resolve([]),
     getChildPages(page.id),
+    getPageAncestors(page.parentId, ["public"]),
   ])
 
   return (
     <article>
       <PageHero title={page.title} image={page.coverImage} eyebrow="Modellbauclub Bellenberg" />
+      {page.parentId != null && (
+        <div className="border-b border-border">
+          <PageBreadcrumb
+            className="mx-auto max-w-6xl px-4 py-3"
+            current={page.title}
+            items={[
+              { href: "/", label: "Startseite" },
+              ...ancestors.map((a) => ({ href: `/seite/${a.slug}`, label: a.title })),
+            ]}
+          />
+        </div>
+      )}
       <div className="mx-auto max-w-3xl px-4 py-16">
         <RichText content={page.content} />
       </div>
