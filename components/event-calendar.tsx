@@ -5,6 +5,8 @@ import { ChevronLeft, ChevronRight, MapPin, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import { formatEventWhen } from "@/lib/format"
+import { eventDayRange } from "@/lib/timezone"
 
 export type CalendarEvent = {
   id: number | string
@@ -38,6 +40,10 @@ const scopeLabels: Record<string, string> = {
   outlook: "Outlook",
 }
 
+function localDayKey(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
+}
+
 function sameDay(a: Date, b: Date) {
   return (
     a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()
@@ -58,7 +64,11 @@ export function EventCalendar({
   const [selected, setSelected] = useState<Date | null>(null)
 
   const parsed = useMemo(
-    () => events.map((e) => ({ ...e, start: new Date(e.startAt) })),
+    () =>
+      events.map((e) => {
+        const [startKey, endKey] = eventDayRange(e.startAt, e.endAt)
+        return { ...e, start: new Date(e.startAt), startKey, endKey }
+      }),
     [events],
   )
 
@@ -73,12 +83,17 @@ export function EventCalendar({
   for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(cursor.getFullYear(), cursor.getMonth(), d))
   while (cells.length % 7 !== 0) cells.push(null)
 
-  const eventsForDay = (day: Date) => parsed.filter((e) => sameDay(e.start, day))
+  const eventsForDay = (day: Date) => {
+    const key = localDayKey(day)
+    return parsed.filter((e) => e.startKey <= key && key <= e.endKey)
+  }
 
+  const monthStartKey = localDayKey(monthStart)
+  const monthEndKey = localDayKey(monthEnd)
   const listEvents = selected
     ? eventsForDay(selected)
     : parsed
-        .filter((e) => e.start >= monthStart && e.start <= new Date(monthEnd.getFullYear(), monthEnd.getMonth(), monthEnd.getDate(), 23, 59))
+        .filter((e) => e.startKey <= monthEndKey && e.endKey >= monthStartKey)
         .sort((a, b) => a.start.getTime() - b.start.getTime())
 
   return (
@@ -205,9 +220,7 @@ export function EventCalendar({
                 </div>
                 <p className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Clock className="size-3.5" />
-                  {e.start.toLocaleDateString("de-DE", { day: "2-digit", month: "long" })}
-                  {!e.allDay && ` · ${e.start.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr`}
-                  {e.allDay && " · ganztägig"}
+                  {formatEventWhen(e.startAt, e.endAt, e.allDay)}
                 </p>
                 {e.location && (
                   <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">

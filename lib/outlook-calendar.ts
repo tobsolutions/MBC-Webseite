@@ -1,5 +1,6 @@
 import "server-only"
 import ical, { type VEvent, type CalendarResponse } from "node-ical"
+import { parseBerlinLocal } from "@/lib/timezone"
 
 // Ein einzelner (ggf. aus einer Serie expandierter) Outlook-Termin.
 export type OutlookEvent = {
@@ -79,8 +80,18 @@ export async function fetchOutlookEvents(url: string, startDate?: string | null)
     if (!Number.isNaN(parsedStart.getTime())) rangeStart = parsedStart
   }
 
+  // node-ical builds date-only values at midnight of the server's TZ; re-anchor
+  // them to German midnight so they match events created in the admin area.
+  const toBerlinMidnight = (d: Date) =>
+    parseBerlinLocal(
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+    ) ?? d
+
   const out: OutlookEvent[] = []
-  const push = (ev: VEvent, start: Date, end: Date | null) => {
+  const push = (ev: VEvent, rawStart: Date, rawEnd: Date | null) => {
+    const allDay = isAllDay(ev)
+    const start = allDay ? toBerlinMidnight(rawStart) : rawStart
+    const end = rawEnd && allDay ? toBerlinMidnight(rawEnd) : rawEnd
     out.push({
       id: `${ev.uid ?? "evt"}-${start.getTime()}`,
       title: cleanText(ev.summary) || "Termin",
@@ -88,7 +99,7 @@ export async function fetchOutlookEvents(url: string, startDate?: string | null)
       location: ev.location ? cleanText(ev.location) : null,
       startAt: start.toISOString(),
       endAt: end ? end.toISOString() : null,
-      allDay: isAllDay(ev),
+      allDay,
       visibility: "outlook",
     })
   }
