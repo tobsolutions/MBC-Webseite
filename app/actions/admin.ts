@@ -20,6 +20,7 @@ import {
   user,
   account,
   settings,
+  type PageGalleryItem,
 } from "@/lib/db/schema"
 
 export type ActionResult = { ok: boolean; error?: string }
@@ -43,6 +44,31 @@ function slugify(input: string): string {
 }
 
 // ---------------------------------------------------------------- Pages -----
+const MAX_GALLERY_ITEMS = 100
+
+function parseGallery(v: FormDataEntryValue | null): PageGalleryItem[] {
+  let raw: unknown
+  try {
+    raw = JSON.parse(String(v ?? "[]"))
+  } catch {
+    return []
+  }
+  if (!Array.isArray(raw)) return []
+  return raw
+    .filter(
+      (item): item is { url: string; caption?: unknown } =>
+        typeof item === "object" &&
+        item !== null &&
+        typeof (item as { url?: unknown }).url === "string" &&
+        /^(\/|https:\/\/)/.test((item as { url: string }).url),
+    )
+    .slice(0, MAX_GALLERY_ITEMS)
+    .map((item) => ({
+      url: item.url,
+      caption: typeof item.caption === "string" ? item.caption.trim().slice(0, 200) : "",
+    }))
+}
+
 export async function savePage(formData: FormData): Promise<ActionResult> {
   await requireAdmin()
   const id = str(formData.get("id"))
@@ -63,6 +89,7 @@ export async function savePage(formData: FormData): Promise<ActionResult> {
     content: str(formData.get("content")),
     excerpt: str(formData.get("excerpt")),
     coverImage: str(formData.get("coverImage")) || null,
+    gallery: parseGallery(formData.get("gallery")),
     parentId,
     visibility: normVisibility(formData.get("visibility")),
     sortOrder: Number.parseInt(str(formData.get("sortOrder")) || "0", 10) || 0,

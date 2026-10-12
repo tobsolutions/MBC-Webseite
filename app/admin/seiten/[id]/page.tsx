@@ -13,7 +13,13 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
   ])
   if (!isNew && !page) notFound()
 
-  const pageOptions = allPages.map((p) => ({ id: p.id, title: p.title }))
+  const pageOptions = allPages.map((p) => ({
+    id: p.id,
+    title: p.title,
+    parentId: p.parentId,
+    sortOrder: p.sortOrder,
+    visibility: p.visibility,
+  }))
 
   return (
     <div className="space-y-6">

@@ -44,7 +44,28 @@ export async function getPublicPage(slug: string) {
   return rows[0] ?? null
 }
 
-// Untergeordnete Seiten einer Elternseite inkl. Kurztext und Titelbild (fuer die Auflistung).
+  // Kette der uebergeordneten Seiten (von der obersten zur direkten Elternseite) fuer die Breadcrumb.
+  // Es werden nur veroeffentlichte Seiten aus den erlaubten Bereichen beruecksichtigt.
+  export async function getPageAncestors(parentId: number | null, scopes: string[]) {
+  const chain: { slug: string; title: string }[] = []
+  const seen = new Set<number>()
+  let currentId = parentId
+  while (currentId != null && !seen.has(currentId) && chain.length < 10) {
+  seen.add(currentId)
+  const rows = await db
+  .select({ id: pages.id, slug: pages.slug, title: pages.title, parentId: pages.parentId })
+  .from(pages)
+  .where(and(eq(pages.id, currentId), inArray(pages.visibility, scopes), eq(pages.published, true)))
+  .limit(1)
+  const row = rows[0]
+  if (!row) break
+  chain.unshift({ slug: row.slug, title: row.title })
+  currentId = row.parentId
+  }
+  return chain
+  }
+
+  // Untergeordnete Seiten einer Elternseite inkl. Kurztext und Titelbild (fuer die Auflistung).
 export async function getChildPages(parentId: number) {
   return db
     .select({

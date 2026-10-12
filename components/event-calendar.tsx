@@ -228,7 +228,7 @@ export function EventCalendar({
                   </p>
                 )}
                 {e.description && (
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{e.description}</p>
+                  <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{e.description}</p>
                 )}
               </div>
             ))
