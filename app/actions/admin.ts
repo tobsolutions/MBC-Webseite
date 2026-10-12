@@ -8,6 +8,7 @@ import { auth } from "@/lib/auth"
 import { requireAdmin } from "@/lib/session"
 import { db } from "@/lib/db"
 import { OUTLOOK_CALENDAR_KEY, OUTLOOK_CALENDAR_START_KEY } from "@/lib/settings-keys"
+import { parseBerlinLocal } from "@/lib/timezone"
 import {
   pages,
   news,
@@ -150,12 +151,15 @@ export async function saveEvent(formData: FormData): Promise<ActionResult> {
   if (!startRaw) return { ok: false, error: "Startdatum ist erforderlich." }
 
   const endRaw = str(formData.get("endAt"))
+  const startAt = parseBerlinLocal(startRaw)
+  if (!startAt) return { ok: false, error: "Ungültiges Startdatum." }
+  const endAt = endRaw ? parseBerlinLocal(endRaw) : null
   const values = {
     title,
     description: str(formData.get("description")),
     location: str(formData.get("location")) || null,
-    startAt: new Date(startRaw),
-    endAt: endRaw ? new Date(endRaw) : null,
+    startAt,
+    endAt,
     allDay: formData.get("allDay") === "on",
     visibility: formData.get("visibility") === "mitglied" ? "mitglied" : "public",
     clubInternal: formData.get("clubInternal") === "on",

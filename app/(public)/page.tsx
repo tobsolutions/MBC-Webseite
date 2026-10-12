@@ -150,10 +150,10 @@ export default async function HomePage() {
                 <div key={ev.id} className="flex gap-4 py-5">
                   <div className="flex size-14 shrink-0 flex-col items-center justify-center rounded-sm bg-primary text-primary-foreground">
                     <span className="font-serif text-lg font-bold leading-none">
-                      {new Date(ev.startAt).getDate()}
+                      {new Intl.DateTimeFormat("de-DE", { day: "numeric", timeZone: "Europe/Berlin" }).format(new Date(ev.startAt))}
                     </span>
                     <span className="mt-0.5 font-mono text-[10px] uppercase tracking-widest">
-                      {new Intl.DateTimeFormat("de-DE", { month: "short" }).format(new Date(ev.startAt))}
+                      {new Intl.DateTimeFormat("de-DE", { month: "short", timeZone: "Europe/Berlin" }).format(new Date(ev.startAt))}
                     </span>
                   </div>
                   <div className="min-w-0">

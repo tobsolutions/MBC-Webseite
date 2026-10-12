@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Loader2, Plus, Pencil, Save, MapPin } from "lucide-react"
 import { saveEvent, deleteEvent } from "@/app/actions/admin"
 import { formatEventWhen } from "@/lib/format"
+import { toBerlinLocalInput } from "@/lib/timezone"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -38,12 +39,7 @@ const VIS_LABEL: Record<string, string> = {
   ausstellungshelfer: "Ausstellungshelfer",
 }
 
-function toLocalDatetime(d: Date | string | null) {
-  if (!d) return ""
-  const date = new Date(d)
-  const off = date.getTimezoneOffset()
-  return new Date(date.getTime() - off * 60000).toISOString().slice(0, 16)
-}
+const toLocalDatetime = toBerlinLocalInput
 
 function EventDialog({ item, trigger }: { item: EventItem | null; trigger: React.ReactNode }) {
   const router = useRouter()
