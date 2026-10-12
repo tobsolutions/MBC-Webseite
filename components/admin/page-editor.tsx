@@ -28,7 +28,49 @@ type PageData = {
   published: boolean
 }
 
-type PageOption = { id: number; title: string }
+type PageOption = {
+  id: number
+  title: string
+  parentId: number | null
+  sortOrder: number
+  visibility: string
+}
+
+const VISIBILITY_GROUPS: { label: string; match: (v: string) => boolean }[] = [
+  { label: "Öffentliche Seiten", match: (v) => v === "public" },
+  { label: "Mitglieder / Ausstellungshelfer", match: (v) => v !== "public" },
+]
+
+function buildParentOptions(pages: PageOption[], currentId: number | undefined) {
+  const ids = new Set(pages.map((p) => p.id))
+  const children = new Map<number | null, PageOption[]>()
+  for (const p of pages) {
+    const key = p.parentId !== null && ids.has(p.parentId) ? p.parentId : null
+    const list = children.get(key) ?? []
+    list.push(p)
+    children.set(key, list)
+  }
+  for (const list of children.values()) {
+    list.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title, "de"))
+  }
+
+  const result: { page: PageOption; depth: number }[] = []
+  function walk(parentId: number | null, depth: number) {
+    for (const p of children.get(parentId) ?? []) {
+      // The page itself and its descendants cannot become its parent.
+      if (p.id === currentId) continue
+      result.push({ page: p, depth })
+      walk(p.id, depth + 1)
+    }
+  }
+  walk(null, 0)
+  return result
+}
+
+function optionLabel(title: string, depth: number) {
+  if (depth === 0) return title
+  return `${"\u00A0\u00A0\u00A0\u00A0".repeat(depth - 1)}\u00A0\u00A0└ ${title}`
+}
 
 export function PageEditor({ page, allPages }: { page: PageData | null; allPages: PageOption[] }) {
   const router = useRouter()
@@ -36,6 +78,17 @@ export function PageEditor({ page, allPages }: { page: PageData | null; allPages
   const [error, setError] = useState<string | null>(null)
   const [coverImage, setCoverImage] = useState<string | null>(page?.coverImage ?? null)
   const [gallery, setGallery] = useState<PageGalleryItem[]>(page?.gallery ?? [])
+  const parentOptions = buildParentOptions(allPages, page?.id)
+  const pageById = new Map(allPages.map((p) => [p.id, p]))
+  function rootOf(p: PageOption) {
+    let current = p
+    const seen = new Set<number>()
+    while (current.parentId !== null && pageById.has(current.parentId) && !seen.has(current.id)) {
+      seen.add(current.id)
+      current = pageById.get(current.parentId)!
+    }
+    return current
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -78,16 +131,26 @@ export function PageEditor({ page, allPages }: { page: PageData | null; allPages
           className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
         >
           <option value="">— Keine (eigenständige Hauptseite)</option>
-          {allPages
-            .filter((p) => p.id !== page?.id)
-            .map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.title}
-              </option>
-            ))}
+          {VISIBILITY_GROUPS.map((group) => {
+            const options = parentOptions.filter(({ page: p }) => {
+              const root = rootOf(p)
+              return group.match(root.visibility)
+            })
+            if (options.length === 0) return null
+            return (
+              <optgroup key={group.label} label={group.label}>
+                {options.map(({ page: p, depth }) => (
+                  <option key={p.id} value={p.id}>
+                    {optionLabel(p.title, depth)}
+                  </option>
+                ))}
+              </optgroup>
+            )
+          })}
         </select>
         <p className="text-xs text-muted-foreground">
-          Als Unterseite einer anderen Seite zuordnen. Erscheint dann im Menü als Dropdown.
+          Als Unterseite einer anderen Seite zuordnen. Erscheint dann im Menü als Dropdown. Eingerückte Einträge sind
+          bereits Unterseiten; die aktuelle Seite und ihre Unterseiten sind nicht wählbar.
         </p>
       </div>
 
