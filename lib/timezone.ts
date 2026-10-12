@@ -40,6 +40,31 @@ export function parseBerlinLocal(value: string): Date | null {
   return new Date(ts)
 }
 
+const pad2 = (n: number) => String(n).padStart(2, "0")
+
+/** "YYYY-MM-DD" of the German calendar day a timestamp falls on. */
+export function berlinDayKey(d: Date | string) {
+  const p = berlinParts(new Date(d))
+  return `${p.year}-${pad2(p.month)}-${pad2(p.day)}`
+}
+
+/**
+ * First and last German calendar day an event occupies. An end exactly at
+ * midnight is exclusive (ICS/Outlook convention), so "14. 00:00 – 17. 00:00"
+ * covers the 14th to the 16th.
+ */
+export function eventDayRange(startAt: Date | string, endAt: Date | string | null): [string, string] {
+  const start = new Date(startAt)
+  const startKey = berlinDayKey(start)
+  if (!endAt) return [startKey, startKey]
+  const end = new Date(endAt)
+  if (end.getTime() <= start.getTime()) return [startKey, startKey]
+  const p = berlinParts(end)
+  const atMidnight = p.hour === 0 && p.minute === 0 && p.second === 0
+  const endKey = berlinDayKey(atMidnight ? new Date(end.getTime() - 1) : end)
+  return [startKey, endKey < startKey ? startKey : endKey]
+}
+
 /** Formats a date as "YYYY-MM-DDTHH:mm" in German local time for datetime-local inputs. */
 export function toBerlinLocalInput(d: Date | string | null) {
   if (!d) return ""
