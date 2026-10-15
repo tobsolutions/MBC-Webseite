@@ -2,7 +2,6 @@
 
 import { db } from "@/lib/db"
 import { contactMessages } from "@/lib/db/schema"
-import { DIGEST_FROM } from "@/lib/email"
 import { Resend } from "resend"
 
 const CONTACT_RECIPIENT = "info@mbc-bellenberg.de"
@@ -19,12 +18,15 @@ function escapeHtml(input: string) {
 }
 
 function escapeHeader(input: string) {
-  return input.replace(/[\\r\\n]/g, " ").trim()
+  return input.replace(/[\r\n]/g, " ").trim()
 }
 
-const textToHtml = (input: string) => escapeHtml(input).replace(/\\n/g, "<br>")
+const textToHtml = (input: string) => escapeHtml(input).replace(/\r?\n/g, "<br>")
 
-export const CONTACT_FROM = process.env.CONTACT_FROM_EMAIL ?? DIGEST_FROM
+// Kontaktmails werden über die verifizierte Vereinsdomain versendet. Die
+// Umgebungsvariable kann für eine andere, ebenfalls verifizierte Adresse
+// überschrieben werden; der Resend-Testabsender ist als Fallback ungeeignet.
+export const CONTACT_FROM = process.env.CONTACT_FROM_EMAIL ?? "MBC Bellenberg <info@mbc-bellenberg.de>"
 
 async function sendContactEmail({ id, name, email, subject, message }: { id: number; name: string; email: string; subject: string; message: string }) {
   const result = await getResend().emails.send(
