@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { FileUpload } from "@/components/file-upload"
+import { RichTextEditor } from "@/components/admin/rich-text-editor"
 import { DeleteButton } from "@/components/admin/delete-button"
 import {
   Dialog,
@@ -85,8 +86,11 @@ function NewsDialog({ item, trigger }: { item: NewsItem | null; trigger: React.R
             <Textarea id="n-excerpt" name="excerpt" defaultValue={item?.excerpt} rows={2} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="n-content">Inhalt</Label>
-            <Textarea id="n-content" name="content" defaultValue={item?.content} rows={8} />
+            <Label>Inhalt</Label>
+            <RichTextEditor name="content" defaultValue={item?.content} placeholder="Inhalt des Beitrags" />
+            <p className="text-xs text-muted-foreground">
+              Inhalt über die Werkzeugleiste formatieren oder über „HTML“ direkt bearbeiten.
+            </p>
           </div>
           <div className="space-y-1.5">
             <Label>Bild (optional)</Label>

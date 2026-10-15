@@ -16,12 +16,13 @@ const VIS_LABEL: Record<string, string> = {
 }
 
 type PageRow = Awaited<ReturnType<typeof getAllPages>>[number]
+type OrderedPage = PageRow & { treeDepth: number }
 
 export default async function AdminPages() {
   const pages = await getAllPages()
   const titleById = new Map(pages.map((p) => [p.id, p.title]))
-  const publicPages = pages.filter((p) => p.visibility === "public")
-  const internalPages = pages.filter((p) => p.visibility !== "public")
+  const publicPages = orderAsFrontendTree(pages.filter((p) => p.visibility === "public"))
+  const internalPages = orderAsFrontendTree(pages.filter((p) => p.visibility !== "public"))
 
   return (
     <div className="space-y-6">
@@ -45,14 +46,14 @@ export default async function AdminPages() {
         <>
           <PageGroup
             title="Öffentliche Seiten"
-            description="Für alle Besucher der Webseite sichtbar."
+            description="In derselben Hierarchie und Reihenfolge wie im Frontend-Menü."
             pages={publicPages}
             titleById={titleById}
             showVisibility={false}
           />
           <PageGroup
             title="Mitglieder & Ausstellungshelfer"
-            description="Nur im internen Bereich bzw. im Helferbereich sichtbar."
+            description="In derselben Hierarchie und Reihenfolge wie im jeweiligen internen Menü."
             pages={internalPages}
             titleById={titleById}
             showVisibility
@@ -61,6 +62,36 @@ export default async function AdminPages() {
       )}
     </div>
   )
+}
+
+function orderAsFrontendTree(pages: PageRow[]): OrderedPage[] {
+  const ids = new Set(pages.map((page) => page.id))
+  const children = new Map<number | null, PageRow[]>()
+
+  for (const page of pages) {
+    const parentId = page.parentId !== null && ids.has(page.parentId) ? page.parentId : null
+    const siblings = children.get(parentId) ?? []
+    siblings.push(page)
+    children.set(parentId, siblings)
+  }
+
+  for (const siblings of children.values()) {
+    siblings.sort((a, b) => a.sortOrder - b.sortOrder || a.title.localeCompare(b.title, "de"))
+  }
+
+  const ordered: OrderedPage[] = []
+  const visited = new Set<number>()
+  function walk(parentId: number | null, depth: number) {
+    for (const page of children.get(parentId) ?? []) {
+      if (visited.has(page.id)) continue
+      visited.add(page.id)
+      ordered.push(Object.assign({}, page, { treeDepth: depth }) as OrderedPage)
+      walk(page.id, depth + 1)
+    }
+  }
+
+  walk(null, 0)
+  return ordered
 }
 
 function PageGroup({
@@ -72,7 +103,7 @@ function PageGroup({
 }: {
   title: string
   description: string
-  pages: PageRow[]
+  pages: OrderedPage[]
   titleById: Map<number, string>
   showVisibility: boolean
 }) {
@@ -97,7 +128,12 @@ function PageGroup({
           <p className="p-4 text-sm text-muted-foreground">Keine Seiten in dieser Gruppe.</p>
         ) : (
           pages.map((p) => (
-            <div key={p.id} className="flex flex-wrap items-center gap-3 p-4">
+            <div
+              key={p.id}
+              className="flex flex-wrap items-center gap-3 border-l-2 border-transparent p-4"
+              style={{ paddingLeft: `${1 + p.treeDepth * 1.5}rem` }}
+              data-depth={p.treeDepth}
+            >
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium">{p.title}</span>
