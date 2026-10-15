@@ -64,27 +64,31 @@ export async function submitContactMessage(_prev: ContactResult | null, formData
     return { ok: false, error: "Bitte schreiben Sie eine etwas ausführlichere Nachricht (mind. 10 Zeichen)." }
   if (message.length > 5000) return { ok: false, error: "Die Nachricht ist zu lang." }
 
-  try {
-    const [saved] = await db
-      .insert(contactMessages)
-      .values({
-        name: name.slice(0, 200),
-        email: email.slice(0, 200),
-        subject: subject.slice(0, 200),
-        message,
-      })
-      .returning({ id: contactMessages.id })
-
-    await sendContactEmail({
-      id: saved.id,
-      name: name.slice(0, 200),
-      email: email.slice(0, 200),
-      subject: subject.slice(0, 200),
-      message,
-    })
-    return { ok: true }
-  } catch (e) {
-    console.error("[v0] contact submission failed:", e)
-    return { ok: false, error: "Die Nachricht konnte nicht versendet werden. Bitte versuchen Sie es später erneut." }
+  const payload = {
+    name: name.slice(0, 200),
+    email: email.slice(0, 200),
+    subject: subject.slice(0, 200),
+    message,
   }
+
+  let saved: { id: number }
+  try {
+    const [row] = await db.insert(contactMessages).values(payload).returning({ id: contactMessages.id })
+    if (!row) throw new Error("Die Nachricht wurde nicht gespeichert.")
+    saved = row
+  } catch (error) {
+    console.error("[v0] contact message database insert failed:", error)
+    return { ok: false, error: "Die Nachricht konnte nicht gespeichert werden. Bitte versuchen Sie es später erneut." }
+  }
+
+  try {
+    await sendContactEmail({ id: saved.id, ...payload })
+  } catch (error) {
+    // Die Nachricht bleibt im Adminbereich erhalten, auch wenn Resend gerade
+    // nicht erreichbar ist oder die Absenderdomain ablehnt.
+    console.error("[v0] contact email delivery failed:", error)
+    return { ok: false, error: "Die Nachricht wurde gespeichert, konnte aber nicht per E-Mail versendet werden." }
+  }
+
+  return { ok: true }
 }
