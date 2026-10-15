@@ -7,7 +7,7 @@ import { eq } from "drizzle-orm"
 import { auth } from "@/lib/auth"
 import { requireAdmin } from "@/lib/session"
 import { db } from "@/lib/db"
-import { OUTLOOK_CALENDAR_KEY, OUTLOOK_CALENDAR_START_KEY } from "@/lib/settings-keys"
+import { CONTACT_CONTENT_PAGE_KEY, OUTLOOK_CALENDAR_KEY, OUTLOOK_CALENDAR_START_KEY } from "@/lib/settings-keys"
 import { parseBerlinLocal } from "@/lib/timezone"
 import {
   pages,
@@ -471,6 +471,18 @@ export async function deleteMessage(id: number): Promise<ActionResult> {
 }
 
 // ------------------------------------------------------------- Settings -----
+export async function saveContactContentPage(formData: FormData): Promise<ActionResult> {
+  await requireAdmin()
+  const pageId = str(formData.get("pageId"))
+  await db
+    .insert(settings)
+    .values({ key: CONTACT_CONTENT_PAGE_KEY, value: pageId, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: settings.key, set: { value: pageId, updatedAt: new Date() } })
+  revalidatePath("/admin/einstellungen")
+  revalidatePath("/kontakt")
+  return { ok: true }
+}
+
 export async function saveOutlookCalendarUrl(formData: FormData): Promise<ActionResult> {
   await requireAdmin()
   let url = str(formData.get("url"))
