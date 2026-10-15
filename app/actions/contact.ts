@@ -26,7 +26,7 @@ const textToHtml = (input: string) => escapeHtml(input).replace(/\r?\n/g, "<br>"
 // Kontaktmails werden über die verifizierte Vereinsdomain versendet. Die
 // Umgebungsvariable kann für eine andere, ebenfalls verifizierte Adresse
 // überschrieben werden; der Resend-Testabsender ist als Fallback ungeeignet.
-export const CONTACT_FROM = process.env.CONTACT_FROM_EMAIL ?? "MBC Bellenberg <info@mbc-bellenberg.de>"
+const CONTACT_FROM = process.env.CONTACT_FROM_EMAIL ?? "MBC Bellenberg <info@mbc-bellenberg.de>"
 
 async function sendContactEmail({ id, name, email, subject, message }: { id: number; name: string; email: string; subject: string; message: string }) {
   const result = await getResend().emails.send(
