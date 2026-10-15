@@ -3,6 +3,7 @@
 import { db } from "@/lib/db"
 import { contactMessages } from "@/lib/db/schema"
 import { Resend } from "resend"
+import type { ContactResult } from "@/lib/contact-types"
 
 const CONTACT_RECIPIENT = "info@mbc-bellenberg.de"
 let resendClient: Resend | null = null
@@ -45,8 +46,6 @@ async function sendContactEmail({ id, name, email, subject, message }: { id: num
   if (result.error) throw new Error(result.error.message)
 }
 
-
-export type ContactResult = { ok: boolean; error?: string }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
