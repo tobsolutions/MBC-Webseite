@@ -2,12 +2,20 @@ import type { Metadata } from "next"
 import { Mail, MapPin, Clock } from "lucide-react"
 import { PageHero } from "@/components/page-hero"
 import { ContactForm } from "@/components/contact-form"
+import { RichText } from "@/components/rich-text"
+import { PageGallery } from "@/components/page-gallery"
+import { getPageById, getSetting } from "@/lib/queries"
+import { CONTACT_CONTENT_PAGE_KEY } from "@/lib/settings-keys"
 
 export const metadata: Metadata = {
   title: "Kontakt · Modellbauclub Bellenberg e.V.",
 }
 
-export default function KontaktPage() {
+export default async function KontaktPage() {
+  const configuredPageId = await getSetting(CONTACT_CONTENT_PAGE_KEY)
+  const embeddedPage = configuredPageId ? await getPageById(Number(configuredPageId)) : null
+  const showEmbeddedPage = embeddedPage?.published && embeddedPage.visibility === "public"
+
   return (
     <div>
       <PageHero
@@ -58,6 +66,18 @@ export default function KontaktPage() {
             <ContactForm />
           </div>
         </div>
+
+        {showEmbeddedPage && embeddedPage && (
+          <section className="mt-16 border-t border-border pt-12" aria-labelledby="kontakt-zusatzinhalt">
+            <h2 id="kontakt-zusatzinhalt" className="sr-only">Weitere Informationen</h2>
+            <RichText content={embeddedPage.content} />
+            {embeddedPage.gallery.length > 0 && (
+              <div className="mt-10">
+                <PageGallery items={embeddedPage.gallery} title={embeddedPage.title} />
+              </div>
+            )}
+          </section>
+        )}
       </div>
     </div>
   )
