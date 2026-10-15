@@ -23,10 +23,12 @@ function escapeHeader(input: string) {
 
 const textToHtml = (input: string) => escapeHtml(input).replace(/\r?\n/g, "<br>")
 
-// Kontaktmails werden über die verifizierte Vereinsdomain versendet. Die
-// Umgebungsvariable kann für eine andere, ebenfalls verifizierte Adresse
-// überschrieben werden; der Resend-Testabsender ist als Fallback ungeeignet.
-const CONTACT_FROM = process.env.CONTACT_FROM_EMAIL ?? "MBC Bellenberg <info@mbc-bellenberg.de>"
+// Dieselbe verifizierte Absenderadresse wie beim bestehenden Mailversand verwenden.
+// CONTACT_FROM_EMAIL kann bei Bedarf durch eine andere verifizierte Adresse ersetzt werden.
+const CONTACT_FROM =
+  process.env.CONTACT_FROM_EMAIL ??
+  process.env.DIGEST_FROM_EMAIL ??
+  "MBC Bellenberg <info@mbc-bellenberg.de>"
 
 async function sendContactEmail({ id, name, email, subject, message }: { id: number; name: string; email: string; subject: string; message: string }) {
   const result = await getResend().emails.send(
@@ -86,7 +88,8 @@ export async function submitContactMessage(_prev: ContactResult | null, formData
   } catch (error) {
     // Die Nachricht bleibt im Adminbereich erhalten, auch wenn Resend gerade
     // nicht erreichbar ist oder die Absenderdomain ablehnt.
-    console.error("[v0] contact email delivery failed:", error)
+    const detail = error instanceof Error ? error.message : String(error)
+    console.error("[v0] contact email delivery failed:", detail)
     return { ok: false, error: "Die Nachricht wurde gespeichert, konnte aber nicht per E-Mail versendet werden." }
   }
 
