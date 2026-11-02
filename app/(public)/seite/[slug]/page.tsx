@@ -35,7 +35,7 @@ export default async function CmsPage({ params }: { params: Promise<{ slug: stri
 
   return (
     <article>
-      <PageHero title={page.title} image={page.coverImage} eyebrow="Modellbauclub Bellenberg" />
+      <PageHero title={page.title} image={page.coverImage} eyebrow="Modellbauclub Bellenberg" aiGenerated={page.coverImageAiGenerated} />
       {page.parentId != null && (
         <div className="border-b border-border">
           <PageBreadcrumb

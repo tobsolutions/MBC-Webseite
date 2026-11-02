@@ -56,7 +56,7 @@ function parseGallery(v: FormDataEntryValue | null): PageGalleryItem[] {
   if (!Array.isArray(raw)) return []
   return raw
     .filter(
-      (item): item is { url: string; caption?: unknown } =>
+      (item): item is { url: string; caption?: unknown; aiGenerated?: unknown } =>
         typeof item === "object" &&
         item !== null &&
         typeof (item as { url?: unknown }).url === "string" &&
@@ -66,6 +66,7 @@ function parseGallery(v: FormDataEntryValue | null): PageGalleryItem[] {
     .map((item) => ({
       url: item.url,
       caption: typeof item.caption === "string" ? item.caption.trim().slice(0, 200) : "",
+      aiGenerated: item.aiGenerated === true,
     }))
 }
 
@@ -89,6 +90,7 @@ export async function savePage(formData: FormData): Promise<ActionResult> {
     content: str(formData.get("content")),
     excerpt: str(formData.get("excerpt")),
     coverImage: str(formData.get("coverImage")) || null,
+    coverImageAiGenerated: formData.get("coverImageAiGenerated") === "on",
     gallery: parseGallery(formData.get("gallery")),
     parentId,
     visibility: normVisibility(formData.get("visibility")),

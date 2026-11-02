@@ -5,11 +5,13 @@ export function PageHero({
   subtitle,
   image,
   eyebrow,
+  aiGenerated = false,
 }: {
   title: string
   subtitle?: string
   image?: string | null
   eyebrow?: string
+  aiGenerated?: boolean
 }) {
   return (
     <section className="relative overflow-hidden border-b border-border bg-primary text-primary-foreground">
@@ -29,6 +31,7 @@ export function PageHero({
             {subtitle}
           </p>
         )}
+        {aiGenerated && <p className="mt-4 text-xs text-primary-foreground/70">Bild: KI-generiert</p>}
       </div>
     </section>
   )
