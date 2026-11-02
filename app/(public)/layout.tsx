@@ -12,9 +12,13 @@ export default async function PublicLayout({ children }: { children: ReactNode }
     ...cmsPages.map((p) => ({
       href: `/seite/${p.slug}`,
       label: p.title,
-      children: p.children.map((c) => ({ href: `/seite/${c.slug}`, label: c.title })),
+      children: [
+        ...p.children.map((c) => ({ href: `/seite/${c.slug}`, label: c.title })),
+        ...(p.title.trim().toLocaleLowerCase("de-DE") === "der verein"
+          ? [{ href: "/galerie", label: "Galerie" }]
+          : []),
+      ],
     })),
-    { href: "/galerie", label: "Galerie" },
     { href: "/termine", label: "Termine" },
     { href: "/kontakt", label: "Kontakt" },
   ]
