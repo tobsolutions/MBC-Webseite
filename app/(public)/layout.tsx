@@ -14,7 +14,7 @@ export default async function PublicLayout({ children }: { children: ReactNode }
       label: p.title,
       children: [
         ...p.children.map((c) => ({ href: `/seite/${c.slug}`, label: c.title })),
-        ...(p.title.trim().toLocaleLowerCase("de-DE") === "der verein"
+        ...(p.title.trim().toLocaleLowerCase("de-DE") === "verein"
           ? [{ href: "/galerie", label: "Galerie" }]
           : []),
       ],
