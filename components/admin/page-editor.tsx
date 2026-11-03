@@ -77,6 +77,7 @@ export function PageEditor({ page, allPages }: { page: PageData | null; allPages
   const router = useRouter()
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
+  const [title, setTitle] = useState(page?.title ?? "")
   const [coverImage, setCoverImage] = useState<string | null>(page?.coverImage ?? null)
   const [coverImageAiGenerated, setCoverImageAiGenerated] = useState(page?.coverImageAiGenerated ?? false)
   const [gallery, setGallery] = useState<PageGalleryItem[]>(page?.gallery ?? [])
@@ -116,7 +117,7 @@ export function PageEditor({ page, allPages }: { page: PageData | null; allPages
 
       <div className="space-y-1.5">
         <Label htmlFor="title">Titel</Label>
-        <Input id="title" name="title" defaultValue={page?.title} required />
+        <Input id="title" name="title" value={title} onChange={(event) => setTitle(event.target.value)} required />
       </div>
 
       <div className="space-y-1.5">
@@ -206,7 +207,7 @@ export function PageEditor({ page, allPages }: { page: PageData | null; allPages
         <p className="text-xs text-muted-foreground">
           Eigene Bilder nur für diese Seite. Sie erscheinen unter dem Inhalt und sind unabhängig von der Galerie-Seite.
         </p>
-        <PageGalleryEditor items={gallery} onChange={setGallery} />
+        <PageGalleryEditor items={gallery} galleryTitle={title} onChange={setGallery} />
       </div>
 
       <div className="grid gap-5 sm:grid-cols-2">

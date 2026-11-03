@@ -56,7 +56,7 @@ function parseGallery(v: FormDataEntryValue | null): PageGalleryItem[] {
   if (!Array.isArray(raw)) return []
   return raw
     .filter(
-      (item): item is { url: string; caption?: unknown; aiGenerated?: unknown } =>
+      (item): item is { url: string; caption?: unknown; description?: unknown; aiGenerated?: unknown } =>
         typeof item === "object" &&
         item !== null &&
         typeof (item as { url?: unknown }).url === "string" &&
@@ -66,6 +66,7 @@ function parseGallery(v: FormDataEntryValue | null): PageGalleryItem[] {
     .map((item) => ({
       url: item.url,
       caption: typeof item.caption === "string" ? item.caption.trim().slice(0, 200) : "",
+      description: typeof item.description === "string" ? item.description.trim().slice(0, 500) : "",
       aiGenerated: item.aiGenerated === true,
     }))
 }
