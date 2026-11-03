@@ -19,6 +19,7 @@ export function FileUpload({
   onUploaded,
   onClear,
   preview = false,
+  multiple = false,
 }: {
   kind: "bilder" | "dokumente"
   accept?: string
@@ -27,6 +28,7 @@ export function FileUpload({
   onUploaded: (result: UploadResult) => void
   onClear?: () => void
   preview?: boolean
+  multiple?: boolean
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -63,24 +65,26 @@ export function FileUpload({
   }
 
   async function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const files = Array.from(e.target.files ?? [])
+    if (files.length === 0) return
     setUploading(true)
     setError(null)
     setWarning(null)
     try {
-      const preparedFile = await prepareImage(file)
-      const fd = new FormData()
-      fd.append("file", preparedFile)
-      fd.append("kind", kind)
-      const res = await fetch("/api/upload", { method: "POST", body: fd })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data.error || "Upload fehlgeschlagen")
+      for (const file of files) {
+        const preparedFile = await prepareImage(file)
+        const fd = new FormData()
+        fd.append("file", preparedFile)
+        fd.append("kind", kind)
+        const res = await fetch("/api/upload", { method: "POST", body: fd })
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          throw new Error(data.error || `Upload von ${file.name} fehlgeschlagen`)
+        }
+        const data: UploadResult = await res.json()
+        setFileName(data.fileName)
+        onUploaded(data)
       }
-      const data: UploadResult = await res.json()
-      setFileName(data.fileName)
-      onUploaded(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload fehlgeschlagen")
     } finally {
@@ -95,6 +99,7 @@ export function FileUpload({
         ref={inputRef}
         type="file"
         accept={accept}
+        multiple={multiple}
         onChange={handleChange}
         className="hidden"
       />

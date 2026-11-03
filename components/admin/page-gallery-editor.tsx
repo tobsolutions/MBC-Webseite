@@ -92,7 +92,8 @@ export function PageGalleryEditor({
       <FileUpload
         kind="bilder"
         accept="image/*"
-        label="Bild zur Galerie hinzufügen"
+        label="Bilder zur Galerie hinzufügen"
+        multiple
         onUploaded={(r) => onChange([...items, { url: r.url, caption: "", aiGenerated: false }])}
       />
     </div>
