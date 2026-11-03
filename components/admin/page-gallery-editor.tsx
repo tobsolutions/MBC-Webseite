@@ -8,9 +8,11 @@ import type { PageGalleryItem } from "@/lib/db/schema"
 
 export function PageGalleryEditor({
   items,
+  galleryTitle,
   onChange,
 }: {
   items: PageGalleryItem[]
+  galleryTitle: string
   onChange: (items: PageGalleryItem[]) => void
 }) {
   function move(index: number, delta: number) {
@@ -33,15 +35,26 @@ export function PageGalleryEditor({
                 alt={item.caption || `Galeriebild ${i + 1}`}
                 className="size-16 shrink-0 rounded-sm border border-border object-cover"
               />
-              <Input
-                aria-label={`Bildunterschrift für Bild ${i + 1}`}
-                value={item.caption}
-                placeholder="Bildunterschrift (optional)"
-                maxLength={200}
-                onChange={(e) =>
-                  onChange(items.map((it, j) => (j === i ? { ...it, caption: e.target.value } : it)))
-                }
-              />
+              <div className="min-w-0 flex-1 space-y-1.5">
+                <Input
+                  aria-label={`Bildunterschrift für Bild ${i + 1}`}
+                  value={item.caption}
+                  placeholder="Untertitel"
+                  maxLength={200}
+                  onChange={(e) =>
+                    onChange(items.map((it, j) => (j === i ? { ...it, caption: e.target.value } : it)))
+                  }
+                />
+                <Input
+                  aria-label={`Beschreibung für Bild ${i + 1}`}
+                  value={item.description ?? ""}
+                  placeholder="Beschreibung"
+                  maxLength={500}
+                  onChange={(e) =>
+                    onChange(items.map((it, j) => (j === i ? { ...it, description: e.target.value } : it)))
+                  }
+                />
+              </div>
               <label className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
                 <input
                   type="checkbox"
@@ -92,8 +105,14 @@ export function PageGalleryEditor({
       <FileUpload
         kind="bilder"
         accept="image/*"
-        label="Bild zur Galerie hinzufügen"
-        onUploaded={(r) => onChange([...items, { url: r.url, caption: "", aiGenerated: false }])}
+        label="Bilder zur Galerie hinzufügen"
+        multiple
+        onUploaded={(r) =>
+          onChange([
+            ...items,
+            { url: r.url, caption: galleryTitle, description: galleryTitle, aiGenerated: false },
+          ])
+        }
       />
     </div>
   )

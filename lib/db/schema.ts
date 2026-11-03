@@ -8,7 +8,12 @@ import {
   jsonb,
 } from "drizzle-orm/pg-core"
 
-export type PageGalleryItem = { url: string; caption: string; aiGenerated?: boolean }
+export type PageGalleryItem = {
+  url: string
+  caption: string
+  description?: string
+  aiGenerated?: boolean
+}
 
 // ---------------------------------------------------------------------------
 // Better Auth tables (do not rename columns)
