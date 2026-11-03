@@ -15,7 +15,7 @@ export default async function AdminGalleryAlbum({
 
   return (
     <GalleryManager
-      album={{ id: data.album.id, title: data.album.title, description: data.album.description }}
+      album={{ id: data.album.id, slug: data.album.slug, title: data.album.title, description: data.album.description }}
       items={data.images.map((i) => ({ id: i.id, url: i.url, alt: i.alt, caption: i.caption }))}
     />
   )

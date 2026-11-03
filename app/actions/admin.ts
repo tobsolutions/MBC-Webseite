@@ -344,6 +344,9 @@ export async function saveImage(formData: FormData): Promise<ActionResult> {
   }
 
   revalidatePath("/admin/galerie")
+  const albumRowsForPath = await db.select({ slug: galleryAlbums.slug }).from(galleryAlbums).where(eq(galleryAlbums.id, albumId)).limit(1)
+  revalidatePath(`/admin/galerie/${albumId}`)
+  revalidatePath(`/galerie/${albumRowsForPath[0]?.slug ?? ""}`)
   revalidatePath("/galerie")
   return { ok: true }
 }

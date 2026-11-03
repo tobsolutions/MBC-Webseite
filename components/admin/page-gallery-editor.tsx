@@ -1,5 +1,6 @@
 "use client"
 
+import type React from "react"
 import { ArrowDown, ArrowUp, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,7 +14,7 @@ export function PageGalleryEditor({
 }: {
   items: PageGalleryItem[]
   galleryTitle: string
-  onChange: (items: PageGalleryItem[]) => void
+  onChange: React.Dispatch<React.SetStateAction<PageGalleryItem[]>>
 }) {
   function move(index: number, delta: number) {
     const target = index + delta
@@ -108,8 +109,8 @@ export function PageGalleryEditor({
         label="Bilder zur Galerie hinzufügen"
         multiple
         onUploaded={(r) =>
-          onChange([
-            ...items,
+          onChange((current) => [
+            ...current,
             { url: r.url, caption: galleryTitle, description: galleryTitle, aiGenerated: false },
           ])
         }

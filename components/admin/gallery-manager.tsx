@@ -28,34 +28,41 @@ export type ImageItem = {
 
 export type AlbumInfo = {
   id: number
+  slug: string
   title: string
   description: string
 }
 
-function AddDialog({ albumId }: { albumId: number }) {
+function AddDialog({ album }: { album: AlbumInfo }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
-  const [upload, setUpload] = useState<UploadResult | null>(null)
+  const [uploads, setUploads] = useState<Array<{ file: UploadResult; alt: string; caption: string }>>([])
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     setError(null)
-    if (!upload) {
-      setError("Bitte zuerst ein Bild hochladen.")
+    if (uploads.length === 0) {
+      setError("Bitte zuerst mindestens ein Bild hochladen.")
       return
     }
-    const fd = new FormData(e.currentTarget)
-    fd.set("url", upload.url)
-    fd.set("albumId", String(albumId))
     startTransition(async () => {
-      const res = await saveImage(fd)
-      if (res.ok) {
-        setOpen(false)
-        setUpload(null)
-        router.refresh()
-      } else setError(res.error ?? "Fehler beim Speichern.")
+      for (const item of uploads) {
+        const fd = new FormData()
+        fd.set("url", item.file.url)
+        fd.set("albumId", String(album.id))
+        fd.set("alt", item.alt)
+        fd.set("caption", item.caption)
+        const res = await saveImage(fd)
+        if (!res.ok) {
+          setError(res.error ?? "Fehler beim Speichern.")
+          return
+        }
+      }
+      setOpen(false)
+      setUploads([])
+      router.refresh()
     })
   }
 
@@ -76,21 +83,23 @@ function AddDialog({ albumId }: { albumId: number }) {
             <FileUpload
               kind="bilder"
               accept="image/*"
-              label="Bild hochladen"
-              currentUrl={upload?.url ?? null}
+              label="Bilder hochladen"
+              multiple
               preview
-              onUploaded={(r) => setUpload(r)}
-              onClear={() => setUpload(null)}
+              onUploaded={(r) =>
+                setUploads((current) => [
+                  ...current,
+                  { file: r, alt: album.title, caption: album.title },
+                ])
+              }
+              onClear={() => setUploads([])}
             />
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="g-alt">Bildbeschreibung (Alt-Text)</Label>
-            <Input id="g-alt" name="alt" placeholder="z. B. Modellbahnanlage im Vereinsheim" />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="g-caption">Bildunterschrift (optional)</Label>
-            <Input id="g-caption" name="caption" />
-          </div>
+          {uploads.length > 0 && (
+            <p className="text-sm text-muted-foreground">
+              {uploads.length} {uploads.length === 1 ? "Bild" : "Bilder"} bereit zum Speichern. Alt-Text und Bildunterschrift werden automatisch mit dem Albumtitel vorausgefüllt und können danach einzeln bearbeitet werden.
+            </p>
+          )}
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
@@ -123,7 +132,7 @@ export function GalleryManager({ album, items }: { album: AlbumInfo; items: Imag
           <h1 className="mt-1 font-serif text-3xl font-bold tracking-tight">{album.title}</h1>
           {album.description && <p className="mt-1 text-sm text-muted-foreground">{album.description}</p>}
         </div>
-        <AddDialog albumId={album.id} />
+        <AddDialog album={album} />
       </header>
 
       {items.length === 0 ? (

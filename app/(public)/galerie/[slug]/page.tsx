@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { ArrowLeft } from "lucide-react"
 import { PageHero } from "@/components/page-hero"
+import { PageBreadcrumb } from "@/components/page-breadcrumb"
 import { GalleryGrid, type GalleryImage } from "@/components/gallery-grid"
 import { getGalleryAlbum } from "@/lib/queries"
 
@@ -37,6 +38,13 @@ export default async function GalerieAlbumPage({
   return (
     <div>
       <PageHero title={album.title} eyebrow="Galerie" image={album.coverImage} />
+      <div className="border-b border-border">
+        <PageBreadcrumb
+          className="mx-auto max-w-6xl px-4 py-3"
+          items={[{ href: "/", label: "Startseite" }, { href: "/galerie", label: "Galerie" }]}
+          current={album.title}
+        />
+      </div>
       <div className="mx-auto max-w-6xl px-4 py-16">
         <Link
           href="/galerie"
