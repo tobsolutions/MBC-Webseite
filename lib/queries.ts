@@ -141,13 +141,13 @@ export async function getGalleryAlbums() {
       title: galleryAlbums.title,
       description: galleryAlbums.description,
       coverImage: galleryAlbums.coverImage,
-      sortOrder: galleryAlbums.sortOrder,
+      publishedAt: galleryAlbums.publishedAt,
       imageCount: sql<number>`count(${images.id})::int`,
     })
     .from(galleryAlbums)
     .leftJoin(images, eq(images.albumId, galleryAlbums.id))
     .groupBy(galleryAlbums.id)
-    .orderBy(asc(galleryAlbums.sortOrder), asc(galleryAlbums.title))
+    .orderBy(desc(galleryAlbums.publishedAt), asc(galleryAlbums.title))
 }
 
 // Ein Album per Slug inkl. aller zugeordneten Bilder (fuer die Unterseite).
@@ -289,13 +289,13 @@ export async function getAllGalleryAlbums() {
       title: galleryAlbums.title,
       description: galleryAlbums.description,
       coverImage: galleryAlbums.coverImage,
-      sortOrder: galleryAlbums.sortOrder,
+      publishedAt: galleryAlbums.publishedAt,
       imageCount: sql<number>`count(${images.id})::int`,
     })
     .from(galleryAlbums)
     .leftJoin(images, eq(images.albumId, galleryAlbums.id))
     .groupBy(galleryAlbums.id)
-    .orderBy(asc(galleryAlbums.sortOrder), asc(galleryAlbums.title))
+    .orderBy(desc(galleryAlbums.publishedAt), asc(galleryAlbums.title))
 }
 
 export async function getGalleryAlbumById(id: number) {

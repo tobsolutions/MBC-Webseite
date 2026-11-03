@@ -278,7 +278,8 @@ export async function saveGalleryAlbum(formData: FormData): Promise<ActionResult
     title,
     description: str(formData.get("description")),
     coverImage: str(formData.get("coverImage")) || null,
-    sortOrder: Number.parseInt(str(formData.get("sortOrder")) || "0", 10) || 0,
+    publishedAt: new Date(`${str(formData.get("publishedAt")) || new Date().toISOString().slice(0, 10)}T12:00:00`),
+    sortOrder: 0,
     updatedAt: new Date(),
   }
 
