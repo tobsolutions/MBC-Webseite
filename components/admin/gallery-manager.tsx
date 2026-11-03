@@ -28,6 +28,7 @@ export type ImageItem = {
 
 export type AlbumInfo = {
   id: number
+  slug: string
   title: string
   description: string
 }
@@ -39,7 +40,8 @@ function AddDialog({ album }: { album: AlbumInfo }) {
   const [error, setError] = useState<string | null>(null)
   const [uploads, setUploads] = useState<Array<{ file: UploadResult; alt: string; caption: string }>>([])
 
-  function handleSubmit() {
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     setError(null)
     if (uploads.length === 0) {
       setError("Bitte zuerst mindestens ein Bild hochladen.")
