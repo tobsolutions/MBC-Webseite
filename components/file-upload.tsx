@@ -32,6 +32,7 @@ export function FileUpload({
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState({ current: 0, total: 0 })
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
@@ -68,10 +69,11 @@ export function FileUpload({
     const files = Array.from(e.target.files ?? [])
     if (files.length === 0) return
     setUploading(true)
+    setUploadProgress({ current: 0, total: files.length })
     setError(null)
     setWarning(null)
     try {
-      for (const file of files) {
+      for (const [index, file] of files.entries()) {
         const preparedFile = await prepareImage(file)
         const fd = new FormData()
         fd.append("file", preparedFile)
@@ -84,6 +86,7 @@ export function FileUpload({
         const data: UploadResult = await res.json()
         setFileName(data.fileName)
         onUploaded(data)
+        setUploadProgress({ current: index + 1, total: files.length })
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload fehlgeschlagen")
@@ -127,6 +130,20 @@ export function FileUpload({
           </span>
         )}
       </div>
+      {uploading && uploadProgress.total > 0 && (
+        <div className="space-y-1.5" aria-live="polite">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>Bilder werden hochgeladen …</span>
+            <span>{uploadProgress.current} von {uploadProgress.total}</span>
+          </div>
+          <progress
+            className="h-2 w-full overflow-hidden rounded-full"
+            value={uploadProgress.current}
+            max={uploadProgress.total}
+            aria-label="Uploadfortschritt"
+          />
+        </div>
+      )}
       {warning && <p className="text-sm text-amber-700 dark:text-amber-300">{warning}</p>}
       {preview && currentUrl && (
         // eslint-disable-next-line @next/next/no-img-element

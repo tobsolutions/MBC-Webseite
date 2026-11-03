@@ -94,30 +94,9 @@ function AddDialog({ album }: { album: AlbumInfo }) {
             />
           </div>
           {uploads.length > 0 && (
-            <div className="space-y-3">
-              <Label>Bildtexte</Label>
-              {uploads.map((item, index) => (
-                <div key={item.file.url} className="space-y-2 rounded-md border p-3">
-                  <p className="truncate text-xs text-muted-foreground">{item.file.fileName}</p>
-                  <Input
-                    aria-label={`Alt-Text für Bild ${index + 1}`}
-                    value={item.alt}
-                    onChange={(event) =>
-                      setUploads((current) => current.map((entry, i) => i === index ? { ...entry, alt: event.target.value } : entry))
-                    }
-                    placeholder="Bildbeschreibung (Alt-Text)"
-                  />
-                  <Input
-                    aria-label={`Bildunterschrift für Bild ${index + 1}`}
-                    value={item.caption}
-                    onChange={(event) =>
-                      setUploads((current) => current.map((entry, i) => i === index ? { ...entry, caption: event.target.value } : entry))
-                    }
-                    placeholder="Bildunterschrift"
-                  />
-                </div>
-              ))}
-            </div>
+            <p className="text-sm text-muted-foreground">
+              {uploads.length} {uploads.length === 1 ? "Bild" : "Bilder"} bereit zum Speichern. Alt-Text und Bildunterschrift werden automatisch mit dem Albumtitel vorausgefüllt und können danach einzeln bearbeitet werden.
+            </p>
           )}
           {error && <p className="text-sm text-destructive">{error}</p>}
           <div className="flex justify-end gap-2">
