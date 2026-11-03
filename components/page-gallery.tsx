@@ -8,7 +8,9 @@ export function PageGallery({ items, title }: { items: PageGalleryItem[] | null;
     id: i,
     url: item.url,
     alt: item.caption || `${title} – Bild ${i + 1}`,
-    caption: item.caption || null,
+    caption: item.aiGenerated
+      ? [item.caption, "KI-generiert"].filter(Boolean).join(" · ")
+      : item.caption || null,
   }))
 
   return (

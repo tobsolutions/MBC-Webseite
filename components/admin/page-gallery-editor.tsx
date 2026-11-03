@@ -42,6 +42,17 @@ export function PageGalleryEditor({
                   onChange(items.map((it, j) => (j === i ? { ...it, caption: e.target.value } : it)))
                 }
               />
+              <label className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={item.aiGenerated === true}
+                  onChange={(e) =>
+                    onChange(items.map((it, j) => (j === i ? { ...it, aiGenerated: e.target.checked } : it)))
+                  }
+                  className="size-3.5"
+                />
+                KI-Bild
+              </label>
               <div className="flex shrink-0 items-center">
                 <Button
                   type="button"
@@ -82,7 +93,7 @@ export function PageGalleryEditor({
         kind="bilder"
         accept="image/*"
         label="Bild zur Galerie hinzufügen"
-        onUploaded={(r) => onChange([...items, { url: r.url, caption: "" }])}
+        onUploaded={(r) => onChange([...items, { url: r.url, caption: "", aiGenerated: false }])}
       />
     </div>
   )

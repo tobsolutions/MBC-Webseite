@@ -16,7 +16,7 @@ export default async function QrLandingPage() {
 
   return (
     <article>
-      <PageHero title={page.title} image={page.coverImage} eyebrow="Modellbauclub Bellenberg" />
+      <PageHero title={page.title} image={page.coverImage} eyebrow="Modellbauclub Bellenberg" aiGenerated={page.coverImageAiGenerated} />
       <div className="mx-auto max-w-3xl px-4 py-12 sm:py-16">
         <RichText content={page.content} />
       </div>

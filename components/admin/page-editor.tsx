@@ -21,6 +21,7 @@ type PageData = {
   content: string
   excerpt: string
   coverImage: string | null
+  coverImageAiGenerated: boolean
   parentId: number | null
   visibility: string
   sortOrder: number
@@ -77,6 +78,7 @@ export function PageEditor({ page, allPages }: { page: PageData | null; allPages
   const [pending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
   const [coverImage, setCoverImage] = useState<string | null>(page?.coverImage ?? null)
+  const [coverImageAiGenerated, setCoverImageAiGenerated] = useState(page?.coverImageAiGenerated ?? false)
   const [gallery, setGallery] = useState<PageGalleryItem[]>(page?.gallery ?? [])
   const parentOptions = buildParentOptions(allPages, page?.id)
   const pageById = new Map(allPages.map((p) => [p.id, p]))
@@ -95,6 +97,7 @@ export function PageEditor({ page, allPages }: { page: PageData | null; allPages
     setError(null)
     const formData = new FormData(e.currentTarget)
     formData.set("coverImage", coverImage ?? "")
+    formData.set("coverImageAiGenerated", coverImageAiGenerated ? "on" : "")
     formData.set("gallery", JSON.stringify(gallery))
     startTransition(async () => {
       const res = await savePage(formData)
@@ -182,8 +185,20 @@ export function PageEditor({ page, allPages }: { page: PageData | null; allPages
           currentUrl={coverImage}
           preview
           onUploaded={(r) => setCoverImage(r.url)}
-          onClear={() => setCoverImage(null)}
+          onClear={() => {
+            setCoverImage(null)
+            setCoverImageAiGenerated(false)
+          }}
         />
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={coverImageAiGenerated}
+            onChange={(event) => setCoverImageAiGenerated(event.target.checked)}
+            className="size-4"
+          />
+          Dieses Bild ist KI-generiert
+        </label>
       </div>
 
       <div className="space-y-1.5">

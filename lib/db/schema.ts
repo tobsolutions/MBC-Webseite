@@ -8,7 +8,7 @@ import {
   jsonb,
 } from "drizzle-orm/pg-core"
 
-export type PageGalleryItem = { url: string; caption: string }
+export type PageGalleryItem = { url: string; caption: string; aiGenerated?: boolean }
 
 // ---------------------------------------------------------------------------
 // Better Auth tables (do not rename columns)
@@ -77,6 +77,7 @@ export const pages = pgTable("pages", {
   content: text("content").notNull().default(""),
   excerpt: text("excerpt").notNull().default(""),
   coverImage: text("coverImage"),
+  coverImageAiGenerated: boolean("coverImageAiGenerated").notNull().default(false),
   gallery: jsonb("gallery").$type<PageGalleryItem[]>().notNull().default([]),
   parentId: integer("parentId"),
   visibility: text("visibility").notNull().default("public"),
