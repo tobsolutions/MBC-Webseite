@@ -32,7 +32,7 @@ function isSchichtleitung(e: ParsedEvent) {
   return haystack.includes("schichtleitung")
 }
 
-export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
+export function OutlookAgenda({ events, showDescription = true }: { events: CalendarEvent[]; showDescription?: boolean }) {
   const [query, setQuery] = useState("")
 
   // Nach Tag und dann nach identischer Uhrzeit gruppieren.
@@ -142,7 +142,7 @@ export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
                           <MapPin className="size-3.5 shrink-0" /> {e.location}
                         </p>
                       )}
-                      {e.description && (
+                      {showDescription && e.description && (
                         <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
                           {e.description}
                         </p>
