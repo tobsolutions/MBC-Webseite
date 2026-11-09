@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight, CalendarClock, CalendarDays, FileDown, FileText, MapPin } from "lucide-react"
+import { ArrowRight, CalendarClock, CalendarDays, FileDown, FileText } from "lucide-react"
 import { requireHelperAccess } from "@/lib/helper-access"
 import { getHelperDocuments, getHelperNavPages, getSetting } from "@/lib/queries"
 import { fetchOutlookEvents } from "@/lib/outlook-calendar"
@@ -94,14 +94,7 @@ export default async function HelperOverviewPage() {
                       ` · ${ev.startAt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr`}
                   </p>
                   <h3 className="mt-0.5 font-medium">{ev.title}</h3>
-                  {ev.location && (
-                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <MapPin className="size-3.5 shrink-0" /> {ev.location}
-                    </p>
-                  )}
-                  {ev.description && (
-                    <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{ev.description}</p>
-                  )}
+
                 </div>
               </li>
             ))}
