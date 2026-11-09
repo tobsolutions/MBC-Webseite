@@ -26,10 +26,10 @@ function timeSortKey(e: ParsedEvent) {
   return e.start.getHours() * 60 + e.start.getMinutes()
 }
 
-// Termine mit "Schichtleitung" (in Titel oder Beschreibung) sollen zuerst erscheinen.
-function isSchichtleitung(e: ParsedEvent) {
+// Termine mit "Schichtleiter" (in Titel oder Beschreibung) sollen zuerst erscheinen.
+function isSchichtleiter(e: ParsedEvent) {
   const haystack = `${e.title} ${e.description ?? ""}`.toLowerCase()
-  return haystack.includes("schichtleitung")
+  return haystack.includes("schichtleiter")
 }
 
 export function OutlookAgenda({ events, showDescription = true }: { events: CalendarEvent[]; showDescription?: boolean }) {
@@ -68,11 +68,12 @@ export function OutlookAgenda({ events, showDescription = true }: { events: Cale
       const groups = Array.from(byTime.entries())
         .map(([label, list]) => ({
           label,
-          // Innerhalb der gleichen Uhrzeit: "Schichtleitung" zuerst, sonst Reihenfolge beibehalten.
-          list: [...list].sort((a, b) => Number(isSchichtleitung(b)) - Number(isSchichtleitung(a))),
-          sort: timeSortKey(list[0]),
-        }))
-        .sort((a, b) => a.sort - b.sort)
+          // Schichtleiter-Termine stehen pro Tag vor allen anderen Terminen; danach gilt die Uhrzeit.
+          list: [...list].sort((a, b) => Number(isSchichtleiter(b)) - Number(isSchichtleiter(a))),
+    priority: isSchichtleiter(list[0]) ? 0 : 1,
+    sort: timeSortKey(list[0]),
+  }))
+  .sort((a, b) => a.priority - b.priority || a.sort - b.sort)
       return { date: dayEvents[0].start, groups }
     })
   }, [events, query])
