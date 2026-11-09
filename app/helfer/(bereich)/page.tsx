@@ -83,12 +83,13 @@ export default async function HelperOverviewPage() {
                 <CalendarDays className="mt-0.5 size-5 shrink-0 text-accent" />
                 <div className="min-w-0">
                   <p className="font-mono text-xs text-accent">
-                    {ev.startAt.toLocaleDateString("de-DE", {
+                    {new Intl.DateTimeFormat("de-DE", {
+                      timeZone: "Europe/Berlin",
                       weekday: "short",
                       day: "numeric",
                       month: "long",
                       year: "numeric",
-                    })}
+                    }).format(ev.startAt)}
                     {!ev.allDay &&
                       ` · ${ev.startAt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr`}
                   </p>
