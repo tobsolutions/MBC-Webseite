@@ -22,9 +22,13 @@ async function getUpcomingOutlookEvents() {
   if (!result.ok) return []
   const now = Date.now()
   return result.events
-    .filter((ev) => new Date(ev.endAt ?? ev.startAt).getTime() >= now)
+    .filter((ev) => ev.allDay && new Date(ev.endAt ?? ev.startAt).getTime() >= now)
     .slice(0, UPCOMING_LIMIT)
-    .map((ev) => ({ ...ev, startAt: new Date(ev.startAt) }))
+    .map((ev) => ({
+      ...ev,
+      title: ev.title.replace(/^Termin:\s*/i, ""),
+      startAt: new Date(ev.startAt),
+    }))
 }
 
 export default async function HelperOverviewPage() {
