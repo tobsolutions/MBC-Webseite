@@ -68,10 +68,11 @@ export function OutlookAgenda({ events, showDescription = true }: { events: Cale
       const groups = Array.from(byTime.entries())
         .map(([label, list]) => ({
           label,
-          // Schichtleiter-Termine stehen pro Tag vor allen anderen Terminen; danach gilt die Uhrzeit.
+          // Ganztägige Termine stehen pro Tag zuerst, danach Schichtleiter-Termine und anschließend die Uhrzeit.
           list: [...list].sort((a, b) => Number(isSchichtleiter(b)) - Number(isSchichtleiter(a))),
-    priority: isSchichtleiter(list[0]) ? 0 : 1,
-    sort: timeSortKey(list[0]),
+          isAllDay: list[0].allDay,
+          priority: list[0].allDay ? 0 : isSchichtleiter(list[0]) ? 1 : 2,
+          sort: timeSortKey(list[0]),
   }))
   .sort((a, b) => a.priority - b.priority || a.sort - b.sort)
       return { date: dayEvents[0].start, groups }
@@ -129,10 +130,12 @@ export function OutlookAgenda({ events, showDescription = true }: { events: Cale
             {day.groups.map((group) => (
               <div key={group.label} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:gap-4">
                 <div className="flex shrink-0 items-center gap-1.5 sm:w-40">
-                  <CalendarClock className="size-3.5 text-accent" />
-                  <span className="font-mono text-xs font-medium uppercase tracking-wide text-accent">
-                    {group.label}
-                  </span>
+                  {!group.isAllDay && <CalendarClock className="size-3.5 text-accent" />}
+                  {!group.isAllDay && (
+                    <span className="font-mono text-xs font-medium uppercase tracking-wide text-accent">
+                      {group.label}
+                    </span>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1 space-y-2">
                   {group.list.map((e) => (
