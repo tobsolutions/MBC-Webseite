@@ -68,13 +68,14 @@ export function OutlookAgenda({ events, showDescription = true }: { events: Cale
       const groups = Array.from(byTime.entries())
         .map(([label, list]) => ({
           label,
-          // Ganztägige Termine stehen pro Tag zuerst, danach Schichtleiter-Termine und anschließend die Uhrzeit.
+          // Ganztägige Termine stehen zuerst, danach die Startuhrzeit. Schichtleiter bleibt innerhalb einer Uhrzeit vorn.
           list: [...list].sort((a, b) => Number(isSchichtleiter(b)) - Number(isSchichtleiter(a))),
           isAllDay: list[0].allDay,
-          priority: list[0].allDay ? 0 : isSchichtleiter(list[0]) ? 1 : 2,
+          priority: list[0].allDay ? 0 : 1,
           sort: timeSortKey(list[0]),
+          leader: isSchichtleiter(list[0]) ? 0 : 1,
   }))
-  .sort((a, b) => a.priority - b.priority || a.sort - b.sort)
+  .sort((a, b) => a.priority - b.priority || a.sort - b.sort || a.leader - b.leader)
       return { date: dayEvents[0].start, groups }
     })
   }, [events, query])
