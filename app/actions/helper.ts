@@ -8,7 +8,7 @@ import { db } from "@/lib/db"
 import { settings } from "@/lib/db/schema"
 import { getSetting } from "@/lib/queries"
 import { requireAdmin } from "@/lib/session"
-import { HELPER_PASSWORD_KEY } from "@/lib/settings-keys"
+import { HELPER_LINK_SECRET_KEY, HELPER_PASSWORD_KEY } from "@/lib/settings-keys"
 import {
   HELPER_COOKIE,
   createHelperToken,
@@ -51,6 +51,18 @@ export async function saveHelperPassword(_prev: HelperFormState, formData: FormD
     .values({ key: HELPER_PASSWORD_KEY, value, updatedAt: new Date() })
     .onConflictDoUpdate({ target: settings.key, set: { value, updatedAt: new Date() } })
 
+  revalidatePath("/admin/einstellungen")
+  return { ok: true }
+}
+
+export async function saveHelperLinkSecret(_prev: HelperFormState, formData: FormData): Promise<HelperFormState> {
+  await requireAdmin()
+  const secret = String(formData.get("secret") ?? "").trim()
+  if (secret.length < 16) return { error: "Das Secret muss mindestens 16 Zeichen haben." }
+
+  const value = await hashHelperPassword(secret)
+  await db.insert(settings).values({ key: HELPER_LINK_SECRET_KEY, value, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: settings.key, set: { value, updatedAt: new Date() } })
   revalidatePath("/admin/einstellungen")
   return { ok: true }
 }

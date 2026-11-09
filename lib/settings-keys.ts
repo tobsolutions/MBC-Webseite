@@ -6,5 +6,6 @@ export const OUTLOOK_CALENDAR_START_KEY = "outlook_calendar_start"
 export const DIGEST_LAST_RUN_KEY = "digest_last_run"
 // scrypt-Hash ("salt:key") des gemeinsamen Passworts fuer den Helferzugang.
 export const HELPER_PASSWORD_KEY = "helper_password_hash"
+export const HELPER_LINK_SECRET_KEY = "helper_link_secret_hash"
 // Optionale öffentliche CMS-Seite, die unter dem Kontaktformular eingebettet wird.
 export const CONTACT_CONTENT_PAGE_KEY = "contact_content_page"

@@ -4,7 +4,7 @@ import { createHmac, randomBytes, scrypt as scryptCallback, timingSafeEqual } fr
 import { promisify } from "node:util"
 import { getSetting } from "@/lib/queries"
 import { getCurrentUser } from "@/lib/session"
-import { HELPER_PASSWORD_KEY } from "@/lib/settings-keys"
+import { HELPER_LINK_SECRET_KEY, HELPER_PASSWORD_KEY } from "@/lib/settings-keys"
 
 const scrypt = promisify(scryptCallback) as (password: string, salt: Buffer, keylen: number) => Promise<Buffer>
 
@@ -49,16 +49,22 @@ export function createHelperToken(passwordHash: string): string {
 export async function hasHelperCookie(): Promise<boolean> {
   const token = (await cookies()).get(HELPER_COOKIE)?.value
   if (!token) return false
-  const stored = await getSetting(HELPER_PASSWORD_KEY)
-  if (!stored) return false
+  const [passwordHash, linkSecretHash] = await Promise.all([
+    getSetting(HELPER_PASSWORD_KEY),
+    getSetting(HELPER_LINK_SECRET_KEY),
+  ])
+  const storedHashes = [passwordHash, linkSecretHash].filter((value): value is string => Boolean(value))
+  if (storedHashes.length === 0) return false
 
   const [expiresRaw, signature] = token.split(".")
   const expiresAt = Number(expiresRaw)
   if (!signature || !Number.isFinite(expiresAt) || expiresAt < Date.now()) return false
 
-  const expected = Buffer.from(sign(expiresAt, stored))
   const actual = Buffer.from(signature)
-  return actual.length === expected.length && timingSafeEqual(actual, expected)
+  return storedHashes.some((stored) => {
+    const expected = Buffer.from(sign(expiresAt, stored))
+    return actual.length === expected.length && timingSafeEqual(actual, expected)
+  })
 }
 
 // Angemeldete Mitglieder/Admins haben automatisch Zugriff, alle anderen brauchen das Helfer-Passwort.
