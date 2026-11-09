@@ -26,13 +26,13 @@ function timeSortKey(e: ParsedEvent) {
   return e.start.getHours() * 60 + e.start.getMinutes()
 }
 
-// Termine mit "Schichtleitung" (in Titel oder Beschreibung) sollen zuerst erscheinen.
-function isSchichtleitung(e: ParsedEvent) {
+// Termine mit "Schichtleiter" (in Titel oder Beschreibung) sollen zuerst erscheinen.
+function isSchichtleiter(e: ParsedEvent) {
   const haystack = `${e.title} ${e.description ?? ""}`.toLowerCase()
-  return haystack.includes("schichtleitung")
+  return haystack.includes("schichtleiter")
 }
 
-export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
+export function OutlookAgenda({ events, showDescription = true }: { events: CalendarEvent[]; showDescription?: boolean }) {
   const [query, setQuery] = useState("")
 
   // Nach Tag und dann nach identischer Uhrzeit gruppieren.
@@ -68,11 +68,14 @@ export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
       const groups = Array.from(byTime.entries())
         .map(([label, list]) => ({
           label,
-          // Innerhalb der gleichen Uhrzeit: "Schichtleitung" zuerst, sonst Reihenfolge beibehalten.
-          list: [...list].sort((a, b) => Number(isSchichtleitung(b)) - Number(isSchichtleitung(a))),
+          // Ganztägige Termine stehen zuerst, danach die Startuhrzeit. Schichtleiter bleibt innerhalb einer Uhrzeit vorn.
+          list: [...list].sort((a, b) => Number(isSchichtleiter(b)) - Number(isSchichtleiter(a))),
+          isAllDay: list[0].allDay,
+          priority: list[0].allDay ? 0 : 1,
           sort: timeSortKey(list[0]),
-        }))
-        .sort((a, b) => a.sort - b.sort)
+          leader: isSchichtleiter(list[0]) ? 0 : 1,
+  }))
+  .sort((a, b) => a.priority - b.priority || a.sort - b.sort || a.leader - b.leader)
       return { date: dayEvents[0].start, groups }
     })
   }, [events, query])
@@ -128,10 +131,12 @@ export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
             {day.groups.map((group) => (
               <div key={group.label} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:gap-4">
                 <div className="flex shrink-0 items-center gap-1.5 sm:w-40">
-                  <CalendarClock className="size-3.5 text-accent" />
-                  <span className="font-mono text-xs font-medium uppercase tracking-wide text-accent">
-                    {group.label}
-                  </span>
+                  {!group.isAllDay && <CalendarClock className="size-3.5 text-accent" />}
+                  {!group.isAllDay && (
+                    <span className="font-mono text-xs font-medium uppercase tracking-wide text-accent">
+                      {group.label}
+                    </span>
+                  )}
                 </div>
                 <div className="min-w-0 flex-1 space-y-2">
                   {group.list.map((e) => (
@@ -142,7 +147,7 @@ export function OutlookAgenda({ events }: { events: CalendarEvent[] }) {
                           <MapPin className="size-3.5 shrink-0" /> {e.location}
                         </p>
                       )}
-                      {e.description && (
+                      {showDescription && e.description && (
                         <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">
                           {e.description}
                         </p>

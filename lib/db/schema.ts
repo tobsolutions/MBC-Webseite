@@ -138,6 +138,7 @@ export const galleryAlbums = pgTable("gallery_albums", {
   title: text("title").notNull(),
   description: text("description").notNull().default(""),
   coverImage: text("coverImage"),
+  publishedAt: timestamp("publishedAt").notNull().defaultNow(),
   sortOrder: integer("sortOrder").notNull().default(0),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),

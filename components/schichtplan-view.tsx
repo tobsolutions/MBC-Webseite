@@ -38,7 +38,7 @@ export async function SchichtplanView() {
             <span>Der Kalender konnte nicht geladen werden: {outlook.error}</span>
           </div>
         ) : (
-          <OutlookAgenda events={events} />
+          <OutlookAgenda events={events} showDescription={false} />
         )}
       </div>
     </div>

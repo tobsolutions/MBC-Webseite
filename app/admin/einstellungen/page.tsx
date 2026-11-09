@@ -2,19 +2,21 @@ import { getSetting, getAllPages } from "@/lib/queries"
 import { CONTACT_CONTENT_PAGE_KEY } from "@/lib/settings-keys"
 import { ContactContentForm } from "@/components/admin/contact-content-form"
 import { fetchOutlookEvents } from "@/lib/outlook-calendar"
-import { HELPER_PASSWORD_KEY, OUTLOOK_CALENDAR_KEY, OUTLOOK_CALENDAR_START_KEY } from "@/lib/settings-keys"
+import { HELPER_LINK_SECRET_KEY, HELPER_PASSWORD_KEY, OUTLOOK_CALENDAR_KEY, OUTLOOK_CALENDAR_START_KEY } from "@/lib/settings-keys"
 import { OutlookCalendarForm } from "@/components/admin/outlook-calendar-form"
 import { HelperPasswordForm } from "@/components/admin/helper-password-form"
+import { HelperLinkForm } from "@/components/admin/helper-link-form"
 import { DigestTestButton } from "@/components/admin/digest-test-button"
 import { Card } from "@/components/ui/card"
 
 export const metadata = { title: "Einstellungen – Verwaltung | MBC Bellenberg" }
 
 export default async function AdminSettings() {
-  const [url, startDate, helperPasswordHash, contactContentPageId, allPages] = await Promise.all([
+  const [url, startDate, helperPasswordHash, helperLinkSecretHash, contactContentPageId, allPages] = await Promise.all([
     getSetting(OUTLOOK_CALENDAR_KEY),
     getSetting(OUTLOOK_CALENDAR_START_KEY),
     getSetting(HELPER_PASSWORD_KEY),
+    getSetting(HELPER_LINK_SECRET_KEY),
     getSetting(CONTACT_CONTENT_PAGE_KEY),
     getAllPages(),
   ])
@@ -69,6 +71,16 @@ export default async function AdminSettings() {
         </p>
         <div className="mt-6">
           <HelperPasswordForm configured={Boolean(helperPasswordHash)} />
+        </div>
+      </Card>
+
+      <Card className="max-w-2xl p-6">
+        <h2 className="font-serif text-xl font-bold">Direktlink zum Schichtplan</h2>
+        <p className="mt-1 text-sm text-muted-foreground text-pretty">
+          Erzeugt einen Link für den Schichtplan, der ohne Passwort funktioniert. Das Secret wird nur gehasht gespeichert.
+        </p>
+        <div className="mt-6">
+          <HelperLinkForm configured={Boolean(helperLinkSecretHash)} />
         </div>
       </Card>
 

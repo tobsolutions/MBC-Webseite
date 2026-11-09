@@ -25,7 +25,7 @@ export type AlbumItem = {
   title: string
   description: string
   coverImage: string | null
-  sortOrder: number
+  publishedAt: Date
   imageCount: number
 }
 
@@ -82,8 +82,14 @@ function AlbumDialog({ album }: { album?: AlbumItem }) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="a-sort">Sortierung</Label>
-            <Input id="a-sort" name="sortOrder" type="number" defaultValue={album?.sortOrder ?? 0} />
+            <Label htmlFor="a-published">Veröffentlichungsdatum</Label>
+            <Input
+              id="a-published"
+              name="publishedAt"
+              type="date"
+              defaultValue={album?.publishedAt ? new Date(album.publishedAt).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10)}
+              required
+            />
           </div>
           {album?.coverImage && <input type="hidden" name="coverImage" value={album.coverImage} />}
           {error && <p className="text-sm text-destructive">{error}</p>}

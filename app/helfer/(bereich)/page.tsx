@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight, CalendarClock, CalendarDays, FileDown, FileText, MapPin } from "lucide-react"
+import { ArrowRight, CalendarClock, CalendarDays, FileDown, FileText } from "lucide-react"
 import { requireHelperAccess } from "@/lib/helper-access"
 import { getHelperDocuments, getHelperNavPages, getSetting } from "@/lib/queries"
 import { fetchOutlookEvents } from "@/lib/outlook-calendar"
@@ -22,9 +22,13 @@ async function getUpcomingOutlookEvents() {
   if (!result.ok) return []
   const now = Date.now()
   return result.events
-    .filter((ev) => new Date(ev.endAt ?? ev.startAt).getTime() >= now)
+    .filter((ev) => ev.allDay && new Date(ev.endAt ?? ev.startAt).getTime() >= now)
     .slice(0, UPCOMING_LIMIT)
-    .map((ev) => ({ ...ev, startAt: new Date(ev.startAt) }))
+    .map((ev) => ({
+      ...ev,
+      title: ev.title.replace(/^Termin:\s*/i, ""),
+      startAt: new Date(ev.startAt),
+    }))
 }
 
 export default async function HelperOverviewPage() {
@@ -83,24 +87,18 @@ export default async function HelperOverviewPage() {
                 <CalendarDays className="mt-0.5 size-5 shrink-0 text-accent" />
                 <div className="min-w-0">
                   <p className="font-mono text-xs text-accent">
-                    {ev.startAt.toLocaleDateString("de-DE", {
+                    {new Intl.DateTimeFormat("de-DE", {
+                      timeZone: "Europe/Berlin",
                       weekday: "short",
                       day: "numeric",
                       month: "long",
                       year: "numeric",
-                    })}
+                    }).format(ev.startAt)}
                     {!ev.allDay &&
                       ` · ${ev.startAt.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" })} Uhr`}
                   </p>
                   <h3 className="mt-0.5 font-medium">{ev.title}</h3>
-                  {ev.location && (
-                    <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <MapPin className="size-3.5 shrink-0" /> {ev.location}
-                    </p>
-                  )}
-                  {ev.description && (
-                    <p className="mt-1 whitespace-pre-line text-sm text-muted-foreground">{ev.description}</p>
-                  )}
+
                 </div>
               </li>
             ))}
